@@ -4,36 +4,6 @@ var rethinkdb = require( 'rethinkdb' ),
 	EventEmitter = require( 'events' ).EventEmitter,
 	util = require( 'util' );
 
-/**
- * [Provider description]
- *
- * @param {[type]} config [description]
- *
- * {
- * 		// The name for the search result lists, defaults to "search"
- * 		listName: <String>
- * 		
- * 		// Deepstream
- * 		deepstreamClient: <DeepstreamClient>
- *
- * 		or
- *
- * 		deepstreamUrl: <String>
- * 		deepstreamCredentials: <Object>
- *
- * 		// RethinkDb
- * 		rethinkdbConnectionParams: {
- * 			host: <String>,
- * 			port: <Number>,
- * 			db: <String> // defaults to 'deepstream'
- * 		}
- * 		
- * 		or
- *
- * 		rethinkDbConnection: <Connection>
- * 		
- * }
- */
 var Provider = function( config ) {
 	this.isReady = false;
 	this._config = config;
@@ -175,15 +145,18 @@ Provider.prototype._createQuery = function( parsedInput ) {
 
 
 Provider.prototype._parseInput = function( input ) {
+	
+	var operators = [ 'eq', 'match', 'gt', 'lt', 'ne'],
+		search,
+		parsedInput,
+		condition,
+		i;
+
 	if( input.indexOf( '?' ) === -1 ) {
 		return this._queryError( input, 'Missing ?' );
 	}
 
-	var search = input.split( '?' )[ 1 ],
-		operators = [ 'eq', 'match', 'gt', 'lt', 'ne'],
-		parsedInput,
-		condition,
-		i;
+	search = input.split( '?' )[ 1 ];
 
 	try{
 		parsedInput = JSON.parse( search );

@@ -8,6 +8,8 @@ var Search = function( query, listName, rethinkdbConnection, deepstreamClient ) 
 	this._rethinkdbConnection = rethinkdbConnection;
 	this._deepstreamClient = deepstreamClient;
 	this._list = this._deepstreamClient.record.getList( listName );
+	this._initialCursor = null;
+	this._changeFeedCursor = null;
 
 	r
 		.table( this._query.table )
@@ -15,7 +17,11 @@ var Search = function( query, listName, rethinkdbConnection, deepstreamClient ) 
 		.run( this._rethinkdbConnection, this._onInitialValues.bind( this ) );
 };
 
-Search.prototype.destroy = function() {
+Search.prototype.destroy = function() {console.log( 'DESTROY' );
+	this._list.delete();
+	this._changeFeedCursor.close();
+	this._changeFeedCursor = null;
+	this._list = null;
 	this._rethinkdbConnection = null;
 	this._deepstreamClient = null;
 };
@@ -23,16 +29,20 @@ Search.prototype.destroy = function() {
 Search.prototype._onInitialValues = function( error, cursor ) {
 	if( error ) {
 		this._onError( 'Error while retrieving initial value: ' + error.toString() );
-		return;
+	} else {
+		this._initialCursor = cursor;
+		cursor.toArray( this._processInitialValues.bind( this ) );
 	}
+};
 
-	cursor.toArray(function( cursorError, values ){
-		if( cursorError ) {
-			this._onError( 'Error while iterating through cursor for initial values: ' + error.toString() );
-		}
-
+Search.prototype._processInitialValues = function( cursorError, values ){
+	if( cursorError ) {
+		this._onError( 'Error while iterating through cursor for initial values: ' + error.toString() );
+	} else {
+		this._initialCursor.close();
 		this._populateList( values );
-	}.bind( this ));
+		this._subscribeToChangeFeed();
+	}
 };
 
 Search.prototype._subscribeToChangeFeed = function() {
@@ -55,13 +65,52 @@ Search.prototype._populateList = function( values ) {
 };
 
 Search.prototype._onChange = function( error, cursor ) {
-
 	if( error ) {
-		console.log( error );
+		this._onError( 'Error while receiving change notification: ' + error );
 	} else {
-		cursor.each(function( cursorError, row ){
-			console.log( cursorError, row );
-		});
+		this._changeFeedCursor = cursor;
+		cursor.each( this._readChange.bind( this ) );
+	}
+};
+
+Search.prototype._readChange = function( cursorError, change ) {
+	/*
+	 * Since {includeStates: true} is set, rethinkDb will emit 
+	 * state documents, consisting only of the field state and a valua of
+	 * either 'initial' or 'ready'.
+	 *
+	 * Since the filter command doesn't produce initial states, only
+	 * ready is relevant for us
+	 */
+	if( change.state ) {
+		if( change.state === 'ready' ) {
+			this._changeFeedReady = true;
+		}
+	}
+
+	else if( cursorError ) {
+		this._onError( 'cursor error on change: ' + cursorError.toString() );
+	}
+
+	else {
+		if( this._changeFeedReady === true ) {
+			this._processChange( change );
+		}
+	}
+};
+
+Search.prototype._processChange = function( change ) {
+	// Should never occur, just in case it sends an update for an existing document
+	if( change.old_val !== null && change.new_val !== null ) {
+		return;
+	}
+
+	if( change.old_val === null ) {
+		this._list.addEntry( change.new_val[ PRIMARY_KEY ] );
+	}
+
+	if( change.new_val === null ) {
+		this._list.removeEntry( change.old_val[ PRIMARY_KEY ] );
 	}
 };
 
