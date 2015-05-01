@@ -12,3 +12,4 @@ var Provider = require( './src/provider' ),
 			db: 'deepstream'
 		}
 	});
+	
