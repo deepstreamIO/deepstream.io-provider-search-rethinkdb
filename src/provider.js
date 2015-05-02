@@ -11,11 +11,18 @@ var Provider = function( config ) {
 	this._deepstreamClient = null;
 	this._listName = config.listName || 'search';
 	this._searches = {};
-
-	this._initialiseDbConnection();
 };
 
 util.inherits( Provider, EventEmitter );
+
+Provider.prototype.start = function() {
+	this._initialiseDbConnection();
+};
+
+Provider.prototype.stop = function() {
+	this._deepstreamClient.close();
+	this._rethinkDbConnection.close();
+};
 
 Provider.prototype._initialiseDbConnection = function() {
 	this._log( 'Initialising RethinkDb Connection' );
@@ -73,6 +80,8 @@ Provider.prototype._onDeepstreamLogin = function( success, error, message ) {
 };
 
 Provider.prototype._onSubscription = function( name, subscribed ) {
+	this._log( 'received subscription for ' + name );
+
 	var parsedInput = this._parseInput( name ),
 		query;
 
@@ -194,7 +203,9 @@ Provider.prototype._queryError = function( name, error ) {
 };
 
 Provider.prototype._ready = function() {
-	this._deepstreamClient.record.listen( this._listName + '\\?*', this._onSubscription.bind( this ) );
+	var pattern = this._listName + '[\\?].*';
+	this._log( 'listening for ' + pattern );
+	this._deepstreamClient.record.listen( pattern, this._onSubscription.bind( this ) );
 	this._log( 'rethinkdb search provider ready' );
 	this.isReady = true;
 	this.emit( 'ready' );
