@@ -1,0 +1,51 @@
+var r = require( 'rethinkdb' ),
+	connectionParams = require( './connection-params' ),
+	connection,
+	callback;
+
+module.exports = function( _callback ) {
+	callback = _callback;
+	r.connect( connectionParams.rethinkdb, function( error, _connection ){
+		if( error ) {
+			throw error;
+		}
+
+		connection = _connection;
+		dropExistingTable();
+	});
+};
+
+var dropExistingTable = function() {
+	r.tableDrop( connectionParams.testTable ).run( connection, createTable );
+};
+
+var createTable = function() {
+	r
+		.tableCreate( connectionParams.testTable, { primaryKey: connectionParams.primaryKey, durability: 'hard' } )
+		.run( connection, fn( populateTable ) );
+};
+
+var populateTable = function( error ) {
+	r.table( connectionParams.testTable ).insert([
+		{ ds_id: 'don', _v: 1, _d: { title: 'Don Quixote', author:	'Miguel de Cervantes', language: 'Spanish', released: 1605, copiesSold: 315000000 } },
+		{ ds_id: 'tct', _v: 1, _d: { title: 'A Tale Of Two Cities', author: 'Charles Dickens', language: 'English', released: 1859, copiesSold: 200000000 } },
+		{ ds_id: 'lor', _v: 1, _d: { title: 'The Lord of the Rings', author: 'J. R. R. Tolkien', language: 'English', released: 1954, copiesSold: 150000000 } },
+		{ ds_id: 'tlp', _v: 1, _d: { title: 'The Little Prince', author: 'Antoine de Saint-Exupéry', language: 'French', released: 1943, copiesSold: 140000000 } },
+		{ ds_id: 'hrp', _v: 1, _d: { title: 'Harry Potter and the Philosopher\'s Stone', author: 'J. K. Rowling', language: 'English', released: 1997, copiesSold: 107000000 } }
+	]).run( connection, fn( complete ) );
+};
+
+var complete = function() {
+	connection.close();
+	callback();
+};
+
+var fn = function( cb ) {
+	return function( error ) {
+		if( error ) {
+			throw error;
+		} else {
+			cb();
+		}
+	};
+};

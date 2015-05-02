@@ -63,6 +63,12 @@ var searchProvider = new SearchProvider({
   // reuse an existing one by substituting the above with
   rethinkDbConnection: myRethinkDbConnection
 });
+
+// and start it
+searchProvider.start();
+
+// it can also be stopped by calling
+searchProvider.stop();
 ```
 
 Searching
