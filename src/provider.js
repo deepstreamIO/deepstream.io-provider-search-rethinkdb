@@ -4,6 +4,20 @@ var rethinkdb = require( 'rethinkdb' ),
 	EventEmitter = require( 'events' ).EventEmitter,
 	util = require( 'util' );
 
+/**
+ * A data provider that provides dynamically
+ * created lists based on search parameters
+ * using rethinkdb
+ *
+ * 
+ * @author Wolfram Hempel
+ * @license MIT
+ *
+ * @constructor
+ * @extends EventEmitter
+ * 
+ * @param {Object} config please consuld README.md for details
+ */
 var Provider = function( config ) {
 	this.isReady = false;
 	this._config = config;
@@ -15,15 +29,39 @@ var Provider = function( config ) {
 
 util.inherits( Provider, EventEmitter );
 
+/**
+ * Starts the provider. The provider will emit a
+ * 'ready' event once started
+ *
+ * @public
+ * @returns void
+ */
 Provider.prototype.start = function() {
 	this._initialiseDbConnection();
 };
 
+/**
+ * Stops the provider. Closes the deepstream
+ * connection and disconnects from RethinkDb
+ *
+ * @public
+ * @returns void
+ */
 Provider.prototype.stop = function() {
 	this._deepstreamClient.close();
 	this._rethinkDbConnection.close();
 };
 
+/**
+ * Creates the connection to RethinkDb. If the connection
+ * is unsuccessful, an error will be thrown. If the configuration
+ * contains an active connection to RethinkDb instead of connection
+ * parameters, it will be used instead and the provider will move
+ * on to connect to deepstream immediatly
+ *
+ * @private
+ * @returns void
+ */
 Provider.prototype._initialiseDbConnection = function() {
 	this._log( 'Initialising RethinkDb Connection' );
 
@@ -39,6 +77,15 @@ Provider.prototype._initialiseDbConnection = function() {
 	}
 };
 
+/**
+ * Callback for established RethinkDb connections. Initialises the deepstream connection
+ *
+ * @param {RqlDriverError} error (or null for no error)
+ * @param {RethinkdbConnection} connection
+ * 
+ * @private
+ * @returns void
+ */
 Provider.prototype._onRethinkdbConnection = function( error, connection ) {
 	if( error ) {
 		throw new Error( 'Error while connecting to RethinkDb: ' + error.toString() );
@@ -49,6 +96,14 @@ Provider.prototype._onRethinkdbConnection = function( error, connection ) {
 	}
 };
 
+/**
+ * Connect to deepstream via TCP. If an active deepstream connection
+ * is provided instead of connection parameters, it will be used and the provider
+ * moves on to the final step of the initialisation sequence immediatly
+ *
+ * @private
+ * @returns void
+ */
 Provider.prototype._initialiseDeepstreamClient = function() {
 	this._log( 'Initialising Deepstream connection' );
 	
@@ -70,6 +125,17 @@ Provider.prototype._initialiseDeepstreamClient = function() {
 	}
 };
 
+/**
+ * Callback for logins. If the login was successful the provider moves on
+ * to the final step of the initialisation sequence.
+ *
+ * @param {Boolean} success
+ * @param {String} error A deepstream error constant
+ * @param {String} message The message returned by the permissionHandler
+ *
+ * @private
+ * @returns void
+ */
 Provider.prototype._onDeepstreamLogin = function( success, error, message ) {
 	if( success ) {
 		this._log( 'Connection to deepstream established' );
@@ -79,13 +145,48 @@ Provider.prototype._onDeepstreamLogin = function( success, error, message ) {
 	}
 };
 
-Provider.prototype._onSubscription = function( name, subscribed ) {
-	this._log( 'received subscription for ' + name );
+/**
+ * Last step in the initialisation sequence. Listens for the specified pattern and emits
+ * the ready event
+ *
+ * @private
+ * @returns void
+ */
+Provider.prototype._ready = function() {
+	var pattern = this._listName + '[\\?].*';
+	this._log( 'listening for ' + pattern );
+	this._deepstreamClient.record.listen( pattern, this._onSubscription.bind( this ) );
+	this._log( 'rethinkdb search provider ready' );
+	this.isReady = true;
+	this.emit( 'ready' );
+};
 
+/**
+ * Callback for the 'listen' method. Gets called everytime a new
+ * subscription to the specified pattern is made. Parses the
+ * name and - if its the first subscription made to this pattern -
+ * creates a new instance of Search
+ *
+ * @todo The counting of supscriptions might be redundant since
+ * deepstream will already take care of unique subscriptions. It
+ * doesn't hurt much to leave it in, but lets keep an eye on it
+ *
+ * @param   {String} name       The listname the client subscribed to
+ * @param   {Boolean} subscribed Whether a subscription had been made or removed.
+ *
+ * @private
+ * @returns {void}
+ */
+Provider.prototype._onSubscription = function( name, subscribed ) {
+	if( subscribed ) {
+		this._log( 'received subscription for ' + name );
+	} else {
+		this._log( 'discard subscription for ' + name );
+	}
+	
 	var parsedInput = this._parseInput( name ),
 		query;
 
-	// don't process invalid queries
 	if( parsedInput === null ) {
 		return;
 	}
@@ -129,6 +230,7 @@ Provider.prototype._onSubscription = function( name, subscribed ) {
  * 
  * @param   {String} name The recordName for the list, including search parameters
  *
+ * @private
  * @returns {Object} query
  */
 Provider.prototype._createQuery = function( parsedInput ) {
@@ -152,7 +254,18 @@ Provider.prototype._createQuery = function( parsedInput ) {
 	return { table: parsedInput.table, filter: query };
 };
 
-
+/**
+ * Receives a string like
+ *
+ * search?{ "table": "people", "query": [[ "name", "ma", "Wolf" ], [ "age", "gt", "25" ] ] }
+ *
+ * cuts of the search? part and parses the rest as JSON. Validates the resulting structure.
+ *
+ * @param   {String} input the name of the list the user subscribed to
+ *
+ * @private
+ * @returns {Object) parsedInput
+ */
 Provider.prototype._parseInput = function( input ) {
 	
 	var operators = [ 'eq', 'match', 'gt', 'lt', 'ne'],
@@ -196,26 +309,37 @@ Provider.prototype._parseInput = function( input ) {
 	return parsedInput;
 };
 
+/**
+ * Logs query errors
+ *
+ * @param   {String} name
+ * @param   {String} error
+ *
+ * @private
+ * @returns null
+ */
 Provider.prototype._queryError = function( name, error ) {
 	this._log( name );
 	this._log( 'QUERY ERROR | ' + error );
 	return null;
 };
 
-Provider.prototype._ready = function() {
-	var pattern = this._listName + '[\\?].*';
-	this._log( 'listening for ' + pattern );
-	this._deepstreamClient.record.listen( pattern, this._onSubscription.bind( this ) );
-	this._log( 'rethinkdb search provider ready' );
-	this.isReady = true;
-	this.emit( 'ready' );
-};
-
+/**
+ * Logs messages to StdOut
+ *
+ * @todo  introduce log level and (porentially) add logging
+ * for every transaction
+ *
+ * @param   {String} message
+ *
+ * @private
+ * @returns {void}
+ */
 Provider.prototype._log = function( message ) {
 	var date = new Date(),
 		time = date.toLocaleTimeString() + ':' + date.getMilliseconds();
 	
-	//console.log( time + ' | ' + message );
+	console.log( time + ' | ' + message );
 };
 
 module.exports = Provider;
