@@ -13,3 +13,8 @@ var Provider = require( './src/provider' ),
 		}
 	});
 	
+	provider.start();
+// require( './test/create-test-table' )(function(){
+// 	console.log( 'All done' );
+// 	process.exit();
+// });

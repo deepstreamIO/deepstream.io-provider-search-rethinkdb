@@ -145,7 +145,7 @@ Provider.prototype._createQuery = function( parsedInput ) {
 		if( query === null ) {
 			query = row;
 		} else {
-			query.and( row );
+			query = query.and( row );
 		}
 	}
 
@@ -215,7 +215,7 @@ Provider.prototype._log = function( message ) {
 	var date = new Date(),
 		time = date.toLocaleTimeString() + ':' + date.getMilliseconds();
 	
-	console.log( time + ' | ' + message );
+	//console.log( time + ' | ' + message );
 };
 
 module.exports = Provider;
