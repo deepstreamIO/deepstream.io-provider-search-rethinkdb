@@ -1,12 +1,11 @@
 {
   "name": "deepstream.io-provider-search-rethinkdb",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "description": "Realtime searches using rethinkdb",
   "main": "src/provider.js",
   "scripts": {
     "test": "node node_modules/jasmine-node/lib/jasmine-node/cli.js test --autotest --watch ./src"
   },
-  
   "repository": {
     "type": "git",
     "url": "https://github.com/hoxton-one/deepstream.io-provider-search-rethinkdb.git"
