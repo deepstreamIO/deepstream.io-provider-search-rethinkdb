@@ -1,6 +1,6 @@
 {
   "name": "deepstream.io-provider-search-rethinkdb",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Realtime searches using rethinkdb",
   "main": "src/provider.js",
   "scripts": {
