@@ -2,6 +2,7 @@ var rethinkdb = require( 'rethinkdb' ),
 	Search = require( './search' ),
 	DeepstreamClient = require( 'deepstream.io-client-js' ),
 	EventEmitter = require( 'events' ).EventEmitter,
+	QueryParser = require( './query-parser' ),
 	util = require( 'util' );
 
 /**
@@ -9,7 +10,6 @@ var rethinkdb = require( 'rethinkdb' ),
  * created lists based on search parameters
  * using rethinkdb
  *
- * 
  * @author Wolfram Hempel
  * @license MIT
  *
@@ -21,6 +21,8 @@ var rethinkdb = require( 'rethinkdb' ),
 var Provider = function( config ) {
 	this.isReady = false;
 	this._config = config;
+	this._queryParser = new QueryParser( this );
+	this._logLevel = config.logLevel !== undefined ? config.logLevel : 1;
 	this._rethinkDbConnection = null;
 	this._deepstreamClient = null;
 	this._listName = config.listName || 'search';
@@ -53,6 +55,29 @@ Provider.prototype.stop = function() {
 };
 
 /**
+ * Logs messages to StdOut
+ *
+ * @todo  introduce log level and (porentially) add logging
+ * for every transaction
+ *
+ * @param   {String} message
+ *
+ * @public
+ * @returns {void}
+ */
+Provider.prototype.log = function( message, level ) {
+	if( this._logLevel < level ) {
+		return;
+	}
+
+	var date = new Date(),
+		time = date.toLocaleTimeString() + ':' + date.getMilliseconds();
+	
+	console.log( time + ' | ' + message );
+};
+
+
+/**
  * Creates the connection to RethinkDb. If the connection
  * is unsuccessful, an error will be thrown. If the configuration
  * contains an active connection to RethinkDb instead of connection
@@ -63,7 +88,7 @@ Provider.prototype.stop = function() {
  * @returns void
  */
 Provider.prototype._initialiseDbConnection = function() {
-	this._log( 'Initialising RethinkDb Connection' );
+	this.log( 'Initialising RethinkDb Connection', 1 );
 
 	if( this._config.rethinkDbConnection ) {
 		this._rethinkDbConnection = this._config.rethinkDbConnection;
@@ -88,9 +113,9 @@ Provider.prototype._initialiseDbConnection = function() {
  */
 Provider.prototype._onRethinkdbConnection = function( error, connection ) {
 	if( error ) {
-		throw new Error( 'Error while connecting to RethinkDb: ' + error.toString() );
+		throw new Error( 'Error while connecting to RethinkDb: ' + error.toString(), 1 );
 	} else {
-		this._log( 'RethinkDb connection established' );
+		this.log( 'RethinkDb connection established', 1 );
 		this._rethinkDbConnection = connection;
 		this._initialiseDeepstreamClient();
 	}
@@ -105,19 +130,19 @@ Provider.prototype._onRethinkdbConnection = function( error, connection ) {
  * @returns void
  */
 Provider.prototype._initialiseDeepstreamClient = function() {
-	this._log( 'Initialising Deepstream connection' );
+	this.log( 'Initialising Deepstream connection', 1 );
 	
 	if( this._config.deepstreamClient ) {
 		this._deepstreamClient = this._config.deepstreamClient;
-		this._log( 'Deepstream connection established' );
+		this.log( 'Deepstream connection established', 1 );
 		this._ready();
 	} else {
 		if( !this._config.deepstreamUrl ) {
-			throw new Error( 'Can\'t connect to deepstream, neither deepstreamClient nor deepstreamUrl where provided' );
+			throw new Error( 'Can\'t connect to deepstream, neither deepstreamClient nor deepstreamUrl where provided', 1 );
 		}
 
 		if( !this._config.deepstreamCredentials ) {
-			throw new Error( 'Missing configuration parameter deepstreamCredentials' );
+			throw new Error( 'Missing configuration parameter deepstreamCredentials', 1 );
 		}
 
 		this._deepstreamClient = new DeepstreamClient( this._config.deepstreamUrl );
@@ -138,10 +163,10 @@ Provider.prototype._initialiseDeepstreamClient = function() {
  */
 Provider.prototype._onDeepstreamLogin = function( success, error, message ) {
 	if( success ) {
-		this._log( 'Connection to deepstream established' );
+		this.log( 'Connection to deepstream established', 1 );
 		this._ready();
 	} else {
-		this._log( 'Can\'t connect to deepstream: ' + message );
+		this.log( 'Can\'t connect to deepstream: ' + message, 1 );
 	}
 };
 
@@ -154,9 +179,9 @@ Provider.prototype._onDeepstreamLogin = function( success, error, message ) {
  */
 Provider.prototype._ready = function() {
 	var pattern = this._listName + '[\\?].*';
-	this._log( 'listening for ' + pattern );
+	this.log( 'listening for ' + pattern, 1 );
 	this._deepstreamClient.record.listen( pattern, this._onSubscription.bind( this ) );
-	this._log( 'rethinkdb search provider ready' );
+	this.log( 'rethinkdb search provider ready', 1 );
 	this.isReady = true;
 	this.emit( 'ready' );
 };
@@ -167,9 +192,6 @@ Provider.prototype._ready = function() {
  * name and - if its the first subscription made to this pattern -
  * creates a new instance of Search
  *
- * @todo The counting of supscriptions might be redundant since
- * deepstream will already take care of unique subscriptions. It
- * doesn't hurt much to leave it in, but lets keep an eye on it
  *
  * @param   {String} name       The listname the client subscribed to
  * @param   {Boolean} subscribed Whether a subscription had been made or removed.
@@ -178,168 +200,30 @@ Provider.prototype._ready = function() {
  * @returns {void}
  */
 Provider.prototype._onSubscription = function( name, subscribed ) {
+
 	if( subscribed ) {
-		this._log( 'received subscription for ' + name );
+		this.log( 'received subscription for ' + name, 2 );
 	} else {
-		this._log( 'discard subscription for ' + name );
+		this.log( 'discard subscription for ' + name, 2 );
 	}
 	
-	var parsedInput = this._parseInput( name ),
+	var parsedInput = this._queryParser.parseInput( name ),
 		query;
 
 	if( parsedInput === null ) {
 		return;
 	}
 
-	query = this._createQuery( parsedInput );
+	query = this._queryParser.createQuery( parsedInput );
+
+	if( this._searches[ name ] ) {
+		this._searches[ name ].destroy( true );
+		delete this._searches[ name ];
+	}
 
 	if( subscribed === true ) {
-		if( !this._searches[ name ] ) {
-			this._searches[ name ] = new Search( query, name, this._rethinkDbConnection, this._deepstreamClient );
-		}
-
-		this._searches[ name ].subscriptions++;
-	} else {
-		if( this._searches[ name ] ) {
-			this._searches[ name ].subscriptions--;
-
-			if( this._searches[ name ].subscriptions === 0 ) {
-				this._searches[ name ].destroy();
-				delete this._searches[ name ];
-			}
-		}	
+		this._searches[ name ] = new Search( this, query, name, this._rethinkDbConnection, this._deepstreamClient );
 	}
-};
-
-/**
- * Parses the query string, queries are expected to
- * be send as JSON. The full name would look like this
- *
- * search?{ "table": "people", "query": [[ "name", "ma", "Wolf" ], [ "age", "gt", "25" ] ] }
- *
- * The structure is an array of filter conditions. Each filter condition
- * is expresses as [ "<field>", "<operator>", "value" ]
- *
- * Supported operators are
- *
- * "eq" (equals)
- * "match" (RegEx match)
- * "gt" (greater than)
- * "lt" (lesser than)
- * "ne" (not equal)
- * 
- * @param   {String} name The recordName for the list, including search parameters
- *
- * @private
- * @returns {Object} query
- */
-Provider.prototype._createQuery = function( parsedInput ) {
-	var row,
-		condition,
-		query = null,
-		i;
-
-	for( i = 0; i < parsedInput.query.length; i++ ) {
-		condition = parsedInput.query[ i ];
-
-		row = rethinkdb.row( '_d' )( condition[ 0 ] )[ condition[ 1 ] ]( condition[ 2 ] );
-
-		if( query === null ) {
-			query = row;
-		} else {
-			query = query.and( row );
-		}
-	}
-
-	return { table: parsedInput.table, filter: query };
-};
-
-/**
- * Receives a string like
- *
- * search?{ "table": "people", "query": [[ "name", "ma", "Wolf" ], [ "age", "gt", "25" ] ] }
- *
- * cuts of the search? part and parses the rest as JSON. Validates the resulting structure.
- *
- * @param   {String} input the name of the list the user subscribed to
- *
- * @private
- * @returns {Object) parsedInput
- */
-Provider.prototype._parseInput = function( input ) {
-	
-	var operators = [ 'eq', 'match', 'gt', 'lt', 'ne'],
-		search,
-		parsedInput,
-		condition,
-		i;
-
-	if( input.indexOf( '?' ) === -1 ) {
-		return this._queryError( input, 'Missing ?' );
-	}
-
-	search = input.split( '?' )[ 1 ];
-
-	try{
-		parsedInput = JSON.parse( search );
-	} catch( e ) {
-		return this._queryError( input, 'Invalid JSON' );
-	}
-
-	if( !parsedInput.table ) {
-		return this._queryError( input, 'Missing parameter "table"' );
-	}
-
-	if( !parsedInput.query ) {
-		return this._queryError( input, 'Missing parameter "query"' );
-	}
-
-	for( i = 0; i < parsedInput.query.length; i++ ) {
-		condition = parsedInput.query[ i ];
-
-		if( condition.length !== 3 ) {
-			return this._queryError( input, 'Too few parameters' );
-		}
-
-		if( operators.indexOf( condition[ 1 ] ) === -1 ) {
-			return this._queryError( input, 'Unknown operator ' + condition[ 1 ] );
-		}
-	}
-
-	return parsedInput;
-};
-
-/**
- * Logs query errors
- *
- * @param   {String} name
- * @param   {String} error
- *
- * @private
- * @returns null
- */
-Provider.prototype._queryError = function( name, error ) {
-	this._log( name );
-	this._log( 'QUERY ERROR | ' + error );
-	return null;
-};
-
-/**
- * Logs messages to StdOut
- *
- * @todo  introduce log level and (porentially) add logging
- * for every transaction
- *
- * @param   {String} message
- *
- * @private
- * @returns {void}
- */
-Provider.prototype._log = function( message ) {
-	var date = new Date(),
-		time = date.toLocaleTimeString() + ':' + date.getMilliseconds();
-	
-	console.log( time + ' | ' + message );
 };
 
 module.exports = Provider;

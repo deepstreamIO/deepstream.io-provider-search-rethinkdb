@@ -11,6 +11,7 @@ exports.createTestTable = function( done ) {
 
 exports.startProvider = function( done ) {
 	var provider = new Provider({
+		logLevel: 0,
 		listName: 'search',
 		deepstreamUrl: connectionParams.deepstreamUrl,
 		deepstreamCredentials: connectionParams.deepstreamCredentials,

@@ -1,11 +1,11 @@
-var Provider = require( '../src/Provider' ),
-	provider = new Provider({}),
+var QueryParser = require( '../src/query-parser' ),
+	queryParser = new QueryParser({ log: function(){} }),
 	getFilter = function( queryJson ) {
 		var searchString = 'search?' + JSON.stringify( queryJson),
-			query = provider._createQuery( provider._parseInput( searchString ) );
+			query = queryParser.createQuery( queryParser.parseInput( searchString ) );
 
 		return query.filter.toString();
-	}
+	};
 
 describe( 'the provider creates the correct filter for each query', function(){
 	
