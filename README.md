@@ -105,3 +105,13 @@ query can contain one or more conditions. Each condition is an array of [ field,
  * "match" (RegEx match)
 
 Please note that the operators are type-sensitive, so comparing `20` with `"20"` won't yield results 
+
+Important!
+--------------------------------
+Don't forget to delete your search from deepstream once you don't need it anymore, e.g.
+
+```js
+bookSearchResults = ds.record.getList( 'search?' + queryString );
+// use it
+bookSearchResults.delete();
+```
