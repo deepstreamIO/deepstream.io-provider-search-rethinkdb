@@ -1,4 +1,4 @@
-deepstream.io-provider-search-rethinkdb
+deepstream.io-provider-search-rethinkdb[![npm version](https://badge.fury.io/js/deepstream.io-provider-search-rethinkdb.svg)](http://badge.fury.io/js/deepstream.io-provider-search-rethinkdb)
 =================================================================
 
 Adds realtime search functionality to deepstream when used in conjunction with RethinkDb. Say you've got a number of records like
