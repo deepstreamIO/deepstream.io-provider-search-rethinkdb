@@ -1,31 +1,32 @@
 deepstream.io-provider-search-rethinkdb[![npm version](https://badge.fury.io/js/deepstream.io-provider-search-rethinkdb.svg)](http://badge.fury.io/js/deepstream.io-provider-search-rethinkdb)
 =================================================================
 
-Adds realtime search functionality to deepstream when used in conjunction with RethinkDb. Say you've got a number of records like
+Adds realtime search functionality to deepstream when used in conjunction with RethinkDb. 
+
+Say you've got a number of records like:
 
 ```js
 ds.record.getRecord( 'book/i95ny80q-2bph9txxqxg' ).set({ 
 	'title': 'Harry Potter and the goblet of fire',
-    'price': 9.99
+	'price': 9.99
 });
 ```
 
-
-and use [deepstream.io's RethinkDb storage connector](https://github.com/hoxton-one/deepstream.io-storage-rethinkdb) with
+and use [deepstream.io's RethinkDb storage connector](https://github.com/hoxton-one/deepstream.io-storage-rethinkdb) with:
 
 ```js
 { splitChar: '/' }
 ```
 
-you can now search for Harry Potter books that cost less than 15.30  like this
+you can now search for Harry Potter books that cost less than 15.30 like this:
 
 ```js
 var queryString = JSON.stringify({
 	table: 'book',
-    query: [
-    	[ 'title', 'match', '^Harry Potter.*' ],
-        [ 'price', 'lt', 15.30 ]
-    ]
+    	query: [
+    		[ 'title', 'match', '^Harry Potter.*' ],
+        	[ 'price', 'lt', 15.30 ]
+    	]
 });
 ds.record.getList( 'search?' + queryString );
 ```
