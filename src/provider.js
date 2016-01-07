@@ -15,7 +15,7 @@ var rethinkdb = require( 'rethinkdb' ),
  *
  * @constructor
  * @extends EventEmitter
- * 
+ *
  * @param {Object} config please consuld README.md for details
  */
 var Provider = function( config ) {
@@ -72,7 +72,7 @@ Provider.prototype.log = function( message, level ) {
 
 	var date = new Date(),
 		time = date.toLocaleTimeString() + ':' + date.getMilliseconds();
-	
+
 	console.log( time + ' | ' + message );
 };
 
@@ -107,7 +107,7 @@ Provider.prototype._initialiseDbConnection = function() {
  *
  * @param {RqlDriverError} error (or null for no error)
  * @param {RethinkdbConnection} connection
- * 
+ *
  * @private
  * @returns void
  */
@@ -131,14 +131,14 @@ Provider.prototype._onRethinkdbConnection = function( error, connection ) {
  */
 Provider.prototype._initialiseDeepstreamClient = function() {
 	this.log( 'Initialising Deepstream connection', 1 );
-	
+
 	if( this._config.deepstreamClient ) {
 		this._deepstreamClient = this._config.deepstreamClient;
 		this.log( 'Deepstream connection established', 1 );
 		this._ready();
 	} else {
 		if( !this._config.deepstreamUrl ) {
-			throw new Error( 'Can\'t connect to deepstream, neither deepstreamClient nor deepstreamUrl where provided', 1 );
+			throw new Error( 'Can\'t connect to deepstream, neither deepstreamClient nor deepstreamUrl were provided', 1 );
 		}
 
 		if( !this._config.deepstreamCredentials ) {
@@ -206,7 +206,7 @@ Provider.prototype._onSubscription = function( name, subscribed ) {
 	} else {
 		this.log( 'discard subscription for ' + name, 2 );
 	}
-	
+
 	var parsedInput = this._queryParser.parseInput( name ),
 		query;
 

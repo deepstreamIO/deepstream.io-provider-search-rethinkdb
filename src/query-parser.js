@@ -23,7 +23,7 @@ var QueryParser = function( provider ) {
  * "ne" (not equal)
  *
  * @todo  Support for OR might come in handy
- * 
+ *
  * @param   {String} name The recordName for the list, including search parameters
  *
  * @public
@@ -63,7 +63,7 @@ QueryParser.prototype.createQuery = function( parsedInput ) {
  * @returns {Object) parsedInput
  */
 QueryParser.prototype.parseInput = function( input ) {
-	
+
 	var operators = [ 'eq', 'match', 'gt', 'lt', 'ne'],
 		search,
 		parsedInput,
