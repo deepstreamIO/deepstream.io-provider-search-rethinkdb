@@ -25,7 +25,7 @@
   "homepage": "https://github.com/hoxton-one/deepstream.io-provider-search-rethinkdb",
   "dependencies": {
     "rethinkdb": "2.0.0",
-    "deepstream.io-client-js": "0.2.12"
+    "deepstream.io-client-js": "0.3.7"
   },
   "devDependencies": {
     "grunt": "~0.4.5",
