@@ -3,7 +3,7 @@ var r = require( 'rethinkdb' ),
 
 /**
  * This class represents a single realtime search query against RethinkDb.
- * 
+ *
  * It creates two cursors, one to
  * retrieve the initial matches, one to listen for incoming changes. It then
  * creates a deepstream list and populates it with the changes
@@ -51,12 +51,16 @@ var Search = function( provider, query, listName, rethinkdbConnection, deepstrea
  * @returns {void}
  */
 Search.prototype.destroy = function( deleteList ) {
+	if( !this._list ) {
+		return;
+	}
+	
 	this._provider.log( 'Removing search ' + this._list.name );
 
 	if( deleteList ) {
 		this._list.delete();
 	}
-	
+
 	this._changeFeedCursor.close();
 	this._changeFeedCursor = null;
 	this._list = null;
