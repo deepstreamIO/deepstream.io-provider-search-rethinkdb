@@ -1,4 +1,3 @@
-var url = require( 'url' );
 var rethinkdb = require( 'rethinkdb' );
 
 
@@ -76,7 +75,7 @@ QueryParser.prototype.parseInput = function( input ) {
 		return this._queryError( input, 'Missing ?' );
 	}
 
-	search = url.parse( input ).query;
+	search = input.substring( input.indexOf( '?' ) + 1 );
 
 	try{
 		parsedInput = JSON.parse( search );
