@@ -1,3 +1,4 @@
+var url = require( 'url' );
 var rethinkdb = require( 'rethinkdb' );
 
 
@@ -23,7 +24,7 @@ var QueryParser = function( provider ) {
  * "ne" (not equal)
  *
  * @todo  Support for OR might come in handy
- * 
+ *
  * @param   {String} name The recordName for the list, including search parameters
  *
  * @public
@@ -63,18 +64,19 @@ QueryParser.prototype.createQuery = function( parsedInput ) {
  * @returns {Object) parsedInput
  */
 QueryParser.prototype.parseInput = function( input ) {
-	
+
 	var operators = [ 'eq', 'match', 'gt', 'lt', 'ne'],
 		search,
 		parsedInput,
 		condition,
 		i;
 
+
 	if( input.indexOf( '?' ) === -1 ) {
 		return this._queryError( input, 'Missing ?' );
 	}
 
-	search = input.split( '?' )[ 1 ];
+	search = url.parse( input ).query;
 
 	try{
 		parsedInput = JSON.parse( search );
