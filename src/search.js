@@ -54,15 +54,18 @@ Search.prototype.destroy = function( deleteList ) {
 	if( !this._list ) {
 		return;
 	}
-	
+
 	this._provider.log( 'Removing search ' + this._list.name );
 
 	if( deleteList ) {
 		this._list.delete();
 	}
 
-	this._changeFeedCursor.close();
-	this._changeFeedCursor = null;
+	if( this._changeFeedCursor ) {
+		this._changeFeedCursor.close();
+		this._changeFeedCursor = null;
+	}
+	
 	this._list = null;
 	this._rethinkdbConnection = null;
 	this._deepstreamClient = null;
