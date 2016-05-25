@@ -20,6 +20,11 @@ describe( 'the provider allows for the searching of table', function(){
 		spanishBooks,
 		spanishBooksCallback = jasmine.createSpy( 'spanishBooksCallback' );
 
+	var spannishBooksQuery = JSON.stringify({
+		table: connectionParams.testTable,
+		query: [[ 'language', 'eq', 'Spanish' ]]
+	});
+
 	beforeAll(function(done){
 		testHelper.createTestTable( _done.bind(null, done) );
 	});
@@ -66,17 +71,13 @@ describe( 'the provider allows for the searching of table', function(){
 	});
 
 	it( 'issues a simple search for books in spanish and finds Don Quixote', function( done ){
-		var query = JSON.stringify({
-			table: connectionParams.testTable,
-			query: [[ 'language', 'eq', 'Spanish' ]]
-		});
-		spanishBooks = ds.record.getList( 'search?' + query );
-		spanishBooks.subscribe( spanishBooksCallback );
-
-		setTimeout(function(){
-			expect( spanishBooksCallback ).toHaveBeenCalledWith([ 'don' ]);
+		var subscription = function(arg) {
+			expect( arg ).toEqual([ 'don' ])
+			spanishBooks.unsubscribe( this );
 			done();
-		}, 100);
+		}
+		spanishBooks = ds.record.getList( 'search?' + spannishBooksQuery );
+		spanishBooks.subscribe( subscription );
 	});
 
 	it( 'inserts a new spanish book and the search gets notified', function( done ){
@@ -87,11 +88,13 @@ describe( 'the provider allows for the searching of table', function(){
 			released: 1967,
 			copiesSold: 50000000
 		});
-
-		setTimeout(function(){
-			expect( spanishBooksCallback ).toHaveBeenCalledWith([ 'don', 'ohy' ]);
+		var subscription = function(arg) {
+			expect( arg ).toEqual([ 'don', 'ohy' ])
+			spanishBooks.unsubscribe( this );
 			done();
-		}, 100);
+		}
+		spanishBooks = ds.record.getList( 'search?' + spannishBooksQuery );
+		spanishBooks.subscribe( subscription );
 	});
 
 	it( 'unsubscribes', function(){
