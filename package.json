@@ -4,7 +4,7 @@
   "description": "Realtime searches using rethinkdb",
   "main": "src/provider.js",
   "scripts": {
-    "test": "node node_modules/jasmine-node/lib/jasmine-node/cli.js test --autotest --watch ./src"
+    "test": "jasmine JASMINE_CONFIG_PATH=jasmine.json"
   },
   "repository": {
     "type": "git",
@@ -24,12 +24,14 @@
   },
   "homepage": "https://github.com/hoxton-one/deepstream.io-provider-search-rethinkdb",
   "dependencies": {
-    "rethinkdb": "2.0.0",
-    "deepstream.io-client-js": "0.2.12"
+    "rethinkdb": "2.3.1",
+    "deepstream.io-client-js": "*"
   },
   "devDependencies": {
+    "deepstream.io": "^0.9.0",
+    "deepstream.io-storage-rethinkdb": "^0.1.0",
     "grunt": "~0.4.5",
     "grunt-release": "0.9.0",
-    "jasmine-node": "1.14.5"
+    "jasmine": "2.4.1"
   }
 }
