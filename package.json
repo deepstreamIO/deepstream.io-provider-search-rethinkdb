@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hoxton-one/deepstream.io-provider-search-rethinkdb.git"
+    "url": "https://github.com/deepstreamIO/deepstream.io-provider-search-rethinkdb.git"
   },
   "keywords": [
     "deepstream",
@@ -17,12 +17,12 @@
     "realtime",
     "streaming"
   ],
-  "author": "Wolfram Hempel",
+  "author": "deepstreamHub GmbH",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/hoxton-one/deepstream.io-provider-search-rethinkdb/issues"
+    "url": "https://github.com/deepstreamIO/deepstream.io-provider-search-rethinkdb/issues"
   },
-  "homepage": "https://github.com/hoxton-one/deepstream.io-provider-search-rethinkdb",
+  "homepage": "https://github.com/deepstreamIO/deepstream.io-provider-search-rethinkdb",
   "dependencies": {
     "rethinkdb": "2.3.1",
     "deepstream.io-client-js": "*"
