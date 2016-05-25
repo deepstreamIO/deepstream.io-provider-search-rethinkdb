@@ -1,12 +1,18 @@
-deepstream.io-provider-search-rethinkdb[![npm version](https://badge.fury.io/js/deepstream.io-provider-search-rethinkdb.svg)](http://badge.fury.io/js/deepstream.io-provider-search-rethinkdb)
-=================================================================
+# deepstream.io-provider-search-rethinkdb
 
-Adds realtime search functionality to deepstream when used in conjunction with RethinkDb. 
+[![Build Status](https://travis-ci.org/deepstreamIO/deepstream.io-provider-search-rethinkdb.svg?branch=master)](https://travis-ci.org/deepstreamIO/deepstream.io-provider-search-rethinkdb)
+[![Coverage Status](https://coveralls.io/repos/github/deepstreamIO/deepstream.io-provider-search-rethinkdb/badge.svg?branch=master)](https://coveralls.io/github/deepstreamIO/deepstream.io-provider-search-rethinkdb?branch=master)
+[![npm](https://img.shields.io/npm/v/deepstream.io-provider-search-rethinkdb.svg)](https://www.npmjs.com/package/deepstream.io-provider-search-rethinkdb)
+[![Dependency Status](https://david-dm.org/deepstreamIO/deepstream.io-provider-search-rethinkdb.svg)](https://david-dm.org/deepstreamIO/deepstream.io-provider-search-rethinkdb)
+[![devDependency Status](https://david-dm.org/deepstreamIO/deepstream.io-provider-search-rethinkdb/dev-status.svg)](https://david-dm.org/deepstreamIO/deepstream.io-provider-search-rethinkdb#info=devDependencies)
+
+
+Adds realtime search functionality to deepstream when used in conjunction with RethinkDb.
 
 Say you've got a number of records like:
 
 ```js
-ds.record.getRecord( 'book/i95ny80q-2bph9txxqxg' ).set({ 
+ds.record.getRecord( 'book/i95ny80q-2bph9txxqxg' ).set({
 	'title': 'Harry Potter and the goblet of fire',
 	'price': 9.99
 });
@@ -36,15 +42,15 @@ and the best thing is: it's in realtime. Whenever a record that matches the sear
 
 Configuration
 --------------------------------
-Install the provider via npm and configure it to connect to both deepstream and RethinkDb 
+Install the provider via npm and configure it to connect to both deepstream and RethinkDb
 
 ```js
 var SearchProvider = require( './src/provider' );
-	
+
 var searchProvider = new SearchProvider({
   //optional, defaults to 'search'
   listName: 'search',
-  
+
   /**
    * Only use 0 or 1 for production!
 
@@ -54,12 +60,12 @@ var searchProvider = new SearchProvider({
    * 3 = log outgoing messages
    */
   logLevel: 3,
-  
+
   // deepstream
   deepstreamUrl: 'localhost:6021',
   deepstreamCredentials: { username: 'rethinkdb-search-provider' },
-  
-  // Instead of creating a new connection to deepstream, you can also 
+
+  // Instead of creating a new connection to deepstream, you can also
   // reuse an existing one by substituting the above with
   deepstreamClient: myDeepstreamClient,
 
@@ -69,8 +75,8 @@ var searchProvider = new SearchProvider({
       port: 28015,
       db: 'deepstream'
   },
-    
-  // Instead of creating a new connection to RethinkDb, you can also 
+
+  // Instead of creating a new connection to RethinkDb, you can also
   // reuse an existing one by substituting the above with
   rethinkDbConnection: myRethinkDbConnection
 });
@@ -105,7 +111,7 @@ query can contain one or more conditions. Each condition is an array of [ field,
  * "ne" (not equal)
  * "match" (RegEx match)
 
-Please note that the operators are type-sensitive, so comparing `20` with `"20"` won't yield results 
+Please note that the operators are type-sensitive, so comparing `20` with `"20"` won't yield results
 
 Important!
 --------------------------------

@@ -1,9 +1,9 @@
 exports.rethinkdb = {
-	host: '192.168.56.101',
+	host: process.env.RETHINK_HOST || '192.168.99.100',
 	port: 28015,
-	db: 'deepstream'
+	db: 'search_provider_test'
 };
 exports.primaryKey = 'ds_id';
-exports.testTable = 'search_provider_test';
+exports.testTable = 'test';
 exports.deepstreamUrl = 'localhost:6021';
 exports.deepstreamCredentials = { username: 'rethinkdb-search-provider' };
