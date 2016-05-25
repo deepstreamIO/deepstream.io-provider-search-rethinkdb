@@ -7,21 +7,30 @@ module.exports = function( _callback ) {
 	callback = _callback;
 	r.connect( connectionParams.rethinkdb, function( error, _connection ){
 		if( error ) {
-			throw error;
+			return _callback(error)
 		}
 
 		connection = _connection;
-		dropExistingTable();
+		r.dbDrop( connectionParams.rethinkdb.db ).run( connection, function(err) {
+			if (err) {
+				// do nothing, this just happens the first time
+			}
+			r.dbCreate( connectionParams.rethinkdb.db ).run(connection, function(err) {
+				if (err) {
+					return _callback(err)
+				}
+				createTable()
+			})
+		} );
 	});
-};
-
-var dropExistingTable = function() {
-	r.tableDrop( connectionParams.testTable ).run( connection, createTable );
 };
 
 var createTable = function() {
 	r
-		.tableCreate( connectionParams.testTable, { primaryKey: connectionParams.primaryKey, durability: 'hard' } )
+		.tableCreate( connectionParams.testTable, {
+			primaryKey: connectionParams.primaryKey,
+			durability: 'hard'
+		} )
 		.run( connection, fn( populateTable ) );
 };
 
@@ -43,7 +52,7 @@ var complete = function() {
 var fn = function( cb ) {
 	return function( error ) {
 		if( error ) {
-			throw error;
+			cb(err)
 		} else {
 			cb();
 		}

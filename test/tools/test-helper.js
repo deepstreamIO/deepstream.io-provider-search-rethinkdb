@@ -27,12 +27,14 @@ exports.startProvider = function( done ) {
 
 exports.connectToDeepstream = function( done ) {
 	var ds = new DeepstreamClient( connectionParams.deepstreamUrl );
+	ds.on('error', function(message) {
+		done(new Error(arguments[1]))
+	})
 	ds.login( { username: 'testClient' }, function( success ){
 		if( !success ) {
-			console.log( arguments );
-			throw new Error( 'Could not connect' );
+			done(new Error( 'Could not connect' ));
 		} else {
-			done( ds );
+			done( null, ds );
 		}
 	});
 };
