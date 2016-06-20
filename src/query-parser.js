@@ -38,7 +38,7 @@ QueryParser.prototype.createQuery = function( parsedInput ) {
 	for( i = 0; i < parsedInput.query.length; i++ ) {
 		condition = parsedInput.query[ i ];
 
-		row = rethinkdb.row( '_d' )( condition[ 0 ] )[ condition[ 1 ] ]( condition[ 2 ] );
+		row = rethinkdb.row( condition[ 0 ] )[ condition[ 1 ] ]( condition[ 2 ] );
 
 		if( query === null ) {
 			query = row;

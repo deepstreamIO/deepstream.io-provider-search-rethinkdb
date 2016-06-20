@@ -20,7 +20,7 @@ describe( 'the provider allows for the searching of table', function(){
 		spanishBooks,
 		spanishBooksCallback = jasmine.createSpy( 'spanishBooksCallback' );
 
-	var spannishBooksQuery = JSON.stringify({
+	var spanishBooksQuery = JSON.stringify({
 		table: connectionParams.testTable,
 		query: [[ 'language', 'eq', 'Spanish' ]]
 	});
@@ -76,7 +76,7 @@ describe( 'the provider allows for the searching of table', function(){
 			spanishBooks.unsubscribe( this );
 			done();
 		}
-		spanishBooks = ds.record.getList( 'search?' + spannishBooksQuery );
+		spanishBooks = ds.record.getList( 'search?' + spanishBooksQuery );
 		spanishBooks.subscribe( subscription );
 	});
 
@@ -93,7 +93,7 @@ describe( 'the provider allows for the searching of table', function(){
 			spanishBooks.unsubscribe( this );
 			done();
 		}
-		spanishBooks = ds.record.getList( 'search?' + spannishBooksQuery );
+		spanishBooks = ds.record.getList( 'search?' + spanishBooksQuery );
 		spanishBooks.subscribe( subscription );
 	});
 

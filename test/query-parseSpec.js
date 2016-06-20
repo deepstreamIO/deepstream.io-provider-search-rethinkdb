@@ -6,7 +6,7 @@ describe( 'queries are parsed correctly', function(){
 
 	it( 'parses queries with a single condition correctly', function(){
 		var parsedInput = queryParser.parseInput( 'search?{"table":"books","query":[["name","eq","Harry Potter"]]}' );
-		
+
 		expect( parsedInput ).toEqual({
 			table: 'books',
 			query: [[ 'name', 'eq', 'Harry Potter' ]]
@@ -17,7 +17,7 @@ describe( 'queries are parsed correctly', function(){
 
 	it( 'parses queries with multiple conditions correctly', function(){
 		var parsedInput = queryParser.parseInput( 'search?{"table":"books","query":[["name","eq","Harry Potter"],["price","gt",12.3],["publisher","match",".*random.*"]]}' );
-		
+
 		expect( parsedInput ).toEqual({
 			table: 'books',
 			query: [
@@ -52,7 +52,7 @@ describe( 'queries are parsed correctly', function(){
 		var parsedInput = queryParser.parseInput( 'search?{"table":"books"}' );
 		expect( parsedInput ).toBe( null );
 		expect( log ).toHaveBeenCalledWith( 'QUERY ERROR | Missing parameter "query"', 1 );
-	});	
+	});
 
 	it( 'errors for malformed query', function(){
 		var parsedInput = queryParser.parseInput( 'search?{"table":"books","query":[["eq","Harry Potter"]]}' );

@@ -1,5 +1,5 @@
 exports.rethinkdb = {
-	host: process.env.RETHINK_HOST || '192.168.99.100',
+	host: process.env.RETHINKDB_HOST || 'localhost',
 	port: 28015,
 	db: 'search_provider_test'
 };

@@ -14,7 +14,7 @@ describe( 'the provider creates the correct filter for each query', function(){
 			table: 'someTable',
 			query: [[ 'title', 'eq', 'Don Quixote' ] ]
 		});
-		expect( filterString ).toBe( 'r.row("_d")("title").eq("Don Quixote")' );
+		expect( filterString ).toBe( 'r.row("title").eq("Don Quixote")' );
 	});
 
 	it( 'creates the right filter for a query with multiple conditions', function(){
@@ -27,6 +27,6 @@ describe( 'the provider creates the correct filter for each query', function(){
 			]
 		});
 
-		expect( filterString ).toBe(  'r.row("_d")("title").eq("Don Quixote").and(r.row("_d")("released").gt(1700)).and(r.row("_d")("author").match(".*eg"))' );
+		expect( filterString ).toBe(  'r.row("title").eq("Don Quixote").and(r.row("released").gt(1700)).and(r.row("author").match(".*eg"))' );
 	});
 });

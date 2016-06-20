@@ -57,7 +57,7 @@ Provider.prototype.stop = function() {
 /**
  * Logs messages to StdOut
  *
- * @todo  introduce log level and (porentially) add logging
+ * @todo  introduce log level and (potentially) add logging
  * for every transaction
  *
  * @param   {String} message
@@ -78,7 +78,7 @@ Provider.prototype.log = function( message, level ) {
 
 
 /**
- * Creates the connection to RethinkDb. If the connection
+ * Creates the connection to RethinkDB. If the connection
  * is unsuccessful, an error will be thrown. If the configuration
  * contains an active connection to RethinkDb instead of connection
  * parameters, it will be used instead and the provider will move
