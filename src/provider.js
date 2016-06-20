@@ -1,17 +1,14 @@
 var rethinkdb = require( 'rethinkdb' ),
-	Search = require( './search' ),
-	DeepstreamClient = require( 'deepstream.io-client-js' ),
-	EventEmitter = require( 'events' ).EventEmitter,
-	QueryParser = require( './query-parser' ),
-	util = require( 'util' );
+  Search = require( './search' ),
+  DeepstreamClient = require( 'deepstream.io-client-js' ),
+  EventEmitter = require( 'events' ).EventEmitter,
+  QueryParser = require( './query-parser' ),
+  util = require( 'util' );
 
 /**
  * A data provider that provides dynamically
  * created lists based on search parameters
  * using rethinkdb
- *
- * @author Wolfram Hempel
- * @license MIT
  *
  * @constructor
  * @extends EventEmitter
@@ -19,14 +16,14 @@ var rethinkdb = require( 'rethinkdb' ),
  * @param {Object} config please consuld README.md for details
  */
 var Provider = function( config ) {
-	this.isReady = false;
-	this._config = config;
-	this._queryParser = new QueryParser( this );
-	this._logLevel = config.logLevel !== undefined ? config.logLevel : 1;
-	this._rethinkDbConnection = null;
-	this._deepstreamClient = null;
-	this._listName = config.listName || 'search';
-	this._searches = {};
+  this.isReady = false;
+  this._config = config;
+  this._queryParser = new QueryParser( this );
+  this._logLevel = config.logLevel !== undefined ? config.logLevel : 1;
+  this._rethinkDbConnection = null;
+  this._deepstreamClient = null;
+  this._listName = config.listName || 'search';
+  this._searches = {};
 };
 
 util.inherits( Provider, EventEmitter );
@@ -39,7 +36,7 @@ util.inherits( Provider, EventEmitter );
  * @returns void
  */
 Provider.prototype.start = function() {
-	this._initialiseDbConnection();
+  this._initialiseDbConnection();
 };
 
 /**
@@ -50,8 +47,8 @@ Provider.prototype.start = function() {
  * @returns void
  */
 Provider.prototype.stop = function() {
-	this._deepstreamClient.close();
-	this._rethinkDbConnection.close();
+  this._deepstreamClient.close();
+  this._rethinkDbConnection.close();
 };
 
 /**
@@ -66,14 +63,14 @@ Provider.prototype.stop = function() {
  * @returns {void}
  */
 Provider.prototype.log = function( message, level ) {
-	if( this._logLevel < level ) {
-		return;
-	}
+  if( this._logLevel < level ) {
+    return;
+  }
 
-	var date = new Date(),
-		time = date.toLocaleTimeString() + ':' + date.getMilliseconds();
+  var date = new Date(),
+    time = date.toLocaleTimeString() + ':' + date.getMilliseconds();
 
-	console.log( time + ' | ' + message );
+  console.log( time + ' | ' + message );
 };
 
 
@@ -88,18 +85,18 @@ Provider.prototype.log = function( message, level ) {
  * @returns void
  */
 Provider.prototype._initialiseDbConnection = function() {
-	this.log( 'Initialising RethinkDb Connection', 1 );
+  this.log( 'Initialising RethinkDb Connection', 1 );
 
-	if( this._config.rethinkDbConnection ) {
-		this._rethinkDbConnection = this._config.rethinkDbConnection;
-		this._initialiseDeepstreamClient();
-	} else {
-		if( !this._config.rethinkdbConnectionParams ) {
-			throw new Error( 'Can\'t connect to rethinkdb, neither connection nor connection parameters provided' );
-		}
+  if( this._config.rethinkDbConnection ) {
+    this._rethinkDbConnection = this._config.rethinkDbConnection;
+    this._initialiseDeepstreamClient();
+  } else {
+    if( !this._config.rethinkdbConnectionParams ) {
+      throw new Error( 'Can\'t connect to rethinkdb, neither connection nor connection parameters provided' );
+    }
 
-		rethinkdb.connect( this._config.rethinkdbConnectionParams, this._onRethinkdbConnection.bind( this ) );
-	}
+    rethinkdb.connect( this._config.rethinkdbConnectionParams, this._onRethinkdbConnection.bind( this ) );
+  }
 };
 
 /**
@@ -112,13 +109,13 @@ Provider.prototype._initialiseDbConnection = function() {
  * @returns void
  */
 Provider.prototype._onRethinkdbConnection = function( error, connection ) {
-	if( error ) {
-		throw new Error( 'Error while connecting to RethinkDb: ' + error.toString(), 1 );
-	} else {
-		this.log( 'RethinkDb connection established', 1 );
-		this._rethinkDbConnection = connection;
-		this._initialiseDeepstreamClient();
-	}
+  if( error ) {
+    throw new Error( 'Error while connecting to RethinkDb: ' + error.toString(), 1 );
+  } else {
+    this.log( 'RethinkDb connection established', 1 );
+    this._rethinkDbConnection = connection;
+    this._initialiseDeepstreamClient();
+  }
 };
 
 /**
@@ -130,24 +127,24 @@ Provider.prototype._onRethinkdbConnection = function( error, connection ) {
  * @returns void
  */
 Provider.prototype._initialiseDeepstreamClient = function() {
-	this.log( 'Initialising Deepstream connection', 1 );
+  this.log( 'Initialising Deepstream connection', 1 );
 
-	if( this._config.deepstreamClient ) {
-		this._deepstreamClient = this._config.deepstreamClient;
-		this.log( 'Deepstream connection established', 1 );
-		this._ready();
-	} else {
-		if( !this._config.deepstreamUrl ) {
-			throw new Error( 'Can\'t connect to deepstream, neither deepstreamClient nor deepstreamUrl were provided', 1 );
-		}
+  if( this._config.deepstreamClient ) {
+    this._deepstreamClient = this._config.deepstreamClient;
+    this.log( 'Deepstream connection established', 1 );
+    this._ready();
+  } else {
+    if( !this._config.deepstreamUrl ) {
+      throw new Error( 'Can\'t connect to deepstream, neither deepstreamClient nor deepstreamUrl were provided', 1 );
+    }
 
-		if( !this._config.deepstreamCredentials ) {
-			throw new Error( 'Missing configuration parameter deepstreamCredentials', 1 );
-		}
+    if( !this._config.deepstreamCredentials ) {
+      throw new Error( 'Missing configuration parameter deepstreamCredentials', 1 );
+    }
 
-		this._deepstreamClient = new DeepstreamClient( this._config.deepstreamUrl );
-		this._deepstreamClient.login( this._config.deepstreamCredentials, this._onDeepstreamLogin.bind( this ) );
-	}
+    this._deepstreamClient = new DeepstreamClient( this._config.deepstreamUrl );
+    this._deepstreamClient.login( this._config.deepstreamCredentials, this._onDeepstreamLogin.bind( this ) );
+  }
 };
 
 /**
@@ -162,12 +159,12 @@ Provider.prototype._initialiseDeepstreamClient = function() {
  * @returns void
  */
 Provider.prototype._onDeepstreamLogin = function( success, error, message ) {
-	if( success ) {
-		this.log( 'Connection to deepstream established', 1 );
-		this._ready();
-	} else {
-		this.log( 'Can\'t connect to deepstream: ' + message, 1 );
-	}
+  if( success ) {
+    this.log( 'Connection to deepstream established', 1 );
+    this._ready();
+  } else {
+    this.log( 'Can\'t connect to deepstream: ' + message, 1 );
+  }
 };
 
 /**
@@ -178,12 +175,12 @@ Provider.prototype._onDeepstreamLogin = function( success, error, message ) {
  * @returns void
  */
 Provider.prototype._ready = function() {
-	var pattern = this._listName + '[\\?].*';
-	this.log( 'listening for ' + pattern, 1 );
-	this._deepstreamClient.record.listen( pattern, this._onSubscription.bind( this ) );
-	this.log( 'rethinkdb search provider ready', 1 );
-	this.isReady = true;
-	this.emit( 'ready' );
+  var pattern = this._listName + '[\\?].*';
+  this.log( 'listening for ' + pattern, 1 );
+  this._deepstreamClient.record.listen( pattern, this._onSubscription.bind( this ) );
+  this.log( 'rethinkdb search provider ready', 1 );
+  this.isReady = true;
+  this.emit( 'ready' );
 };
 
 /**
@@ -201,29 +198,29 @@ Provider.prototype._ready = function() {
  */
 Provider.prototype._onSubscription = function( name, subscribed ) {
 
-	if( subscribed ) {
-		this.log( 'received subscription for ' + name, 2 );
-	} else {
-		this.log( 'discard subscription for ' + name, 2 );
-	}
+  if( subscribed ) {
+    this.log( 'received subscription for ' + name, 2 );
+  } else {
+    this.log( 'discard subscription for ' + name, 2 );
+  }
 
-	var parsedInput = this._queryParser.parseInput( name ),
-		query;
+  var parsedInput = this._queryParser.parseInput( name ),
+    query;
 
-	if( parsedInput === null ) {
-		return;
-	}
+  if( parsedInput === null ) {
+    return;
+  }
 
-	query = this._queryParser.createQuery( parsedInput );
+  query = this._queryParser.createQuery( parsedInput );
 
-	if( this._searches[ name ] ) {
-		this._searches[ name ].destroy( true );
-		delete this._searches[ name ];
-	}
+  if( this._searches[ name ] ) {
+    this._searches[ name ].destroy( true );
+    delete this._searches[ name ];
+  }
 
-	if( subscribed === true ) {
-		this._searches[ name ] = new Search( this, query, name, this._rethinkDbConnection, this._deepstreamClient );
-	}
+  if( subscribed === true ) {
+    this._searches[ name ] = new Search( this, query, name, this._rethinkDbConnection, this._deepstreamClient );
+  }
 };
 
 module.exports = Provider;

@@ -1,5 +1,29 @@
+env:
+  global:
+    - CXX=g++-4.8
+    - RETHINKDB_HOST=54.93.77.53
+
+# Do not insert any code under here without making sures it's in publishingtest first
 language: node_js
+
+plugins:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - g++-4.8
+
 node_js:
   - "stable"
-  - "4.0"
-after_script: "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
+  - "4.4.5"
+
+matrix:
+  include:
+    - node_js: "4.4.5"
+      os: osx
+
+script:
+  - npm run test
+
+after_script:
+  - "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"

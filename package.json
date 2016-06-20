@@ -4,7 +4,10 @@
   "description": "Realtime searches using rethinkdb",
   "main": "src/provider.js",
   "scripts": {
-    "test": "istanbul cover jasmine JASMINE_CONFIG_PATH=jasmine.json"
+    "test": "mocha",
+    "coverage": "istanbul cover node_modules/mocha/bin/_mocha",
+    "lint": "eslint \"src/**/*.js\" \"test/**/*.js\"",
+    "ci": "npm run coverage && npm run lint"
   },
   "repository": {
     "type": "git",
@@ -18,22 +21,25 @@
     "streaming"
   ],
   "author": "deepstreamHub GmbH",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/deepstreamIO/deepstream.io-provider-search-rethinkdb/issues"
   },
   "homepage": "https://github.com/deepstreamIO/deepstream.io-provider-search-rethinkdb",
   "dependencies": {
-    "rethinkdb": "2.3.2",
-    "deepstream.io-client-js": "0.5.0"
+    "deepstream.io-client-js": "0.5.0",
+    "rethinkdb": "2.3.2"
   },
   "devDependencies": {
+    "chai": "^3.5.0",
     "coveralls": "^2.11.9",
     "deepstream.io": "^0.9.0",
     "deepstream.io-storage-rethinkdb": "^0.1.0",
+    "eslint": "^2.11.1",
+    "eslint-config-airbnb": "^3.1.0",
     "istanbul": "^0.4.3",
-    "jasmine": "2.4.1",
-    "grunt": "1.0.1",
-    "grunt-release": "0.13.1"
+    "mocha": "^2.5.2",
+    "sinon": "^1.17.4",
+    "sinon-chai": "^2.8.0"
   }
 }

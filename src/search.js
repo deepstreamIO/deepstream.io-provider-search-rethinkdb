@@ -1,5 +1,5 @@
-var r = require( 'rethinkdb' ),
-	PRIMARY_KEY = 'ds_id';
+const r = require( 'rethinkdb' )
+const PRIMARY_KEY = 'ds_id'
 
 /**
  * This class represents a single realtime search query against RethinkDb.
@@ -23,22 +23,22 @@ var r = require( 'rethinkdb' ),
  * @param {DeepstreamClient} deepstreamClient
  */
 var Search = function( provider, query, listName, rethinkdbConnection, deepstreamClient ) {
-	this.subscriptions = 0;
+  this.subscriptions = 0
 
-	this._provider = provider;
-	this._query = query;
-	this._rethinkdbConnection = rethinkdbConnection;
-	this._deepstreamClient = deepstreamClient;
-	this._list = this._deepstreamClient.record.getList( listName );
-	this._list.on( 'delete', this.destroy.bind( this, false ) );
-	this._initialCursor = null;
-	this._changeFeedCursor = null;
+  this._provider = provider
+  this._query = query
+  this._rethinkdbConnection = rethinkdbConnection
+  this._deepstreamClient = deepstreamClient
+  this._list = this._deepstreamClient.record.getList( listName )
+  this._list.on( 'delete', this.destroy.bind( this, false ) )
+  this._initialCursor = null
+  this._changeFeedCursor = null
 
-	r
-		.table( this._query.table )
-		.filter( this._query.filter )
-		.run( this._rethinkdbConnection, this._onInitialValues.bind( this ) );
-};
+  r
+    .table( this._query.table )
+    .filter( this._query.filter )
+    .run( this._rethinkdbConnection, this._onInitialValues.bind( this ) )
+}
 
 /**
  * Closes the RethinkDb change feed cursor. It also deletes the list if called
@@ -51,18 +51,18 @@ var Search = function( provider, query, listName, rethinkdbConnection, deepstrea
  * @returns {void}
  */
 Search.prototype.destroy = function( deleteList ) {
-	this._provider.log( 'Removing search ' + this._list.name );
+  this._provider.log( 'Removing search ' + this._list.name )
 
-	if( deleteList ) {
-		this._list.delete();
-	}
+  if( deleteList ) {
+    this._list.delete()
+  }
 
-	this._changeFeedCursor.close();
-	this._changeFeedCursor = null;
-	this._list = null;
-	this._rethinkdbConnection = null;
-	this._deepstreamClient = null;
-};
+  this._changeFeedCursor.close()
+  this._changeFeedCursor = null
+  this._list = null
+  this._rethinkdbConnection = null
+  this._deepstreamClient = null
+}
 
 /**
  * Callback once the entries that currently match the search criteria
@@ -75,13 +75,13 @@ Search.prototype.destroy = function( deleteList ) {
  * @returns {void}
  */
 Search.prototype._onInitialValues = function( error, cursor ) {
-	if( error ) {
-		this._onError( 'Error while retrieving initial value: ' + error.toString() );
-	} else {
-		this._initialCursor = cursor;
-		cursor.toArray( this._processInitialValues.bind( this ) );
-	}
-};
+  if( error ) {
+    this._onError( 'Error while retrieving initial value: ' + error.toString() )
+  } else {
+    this._initialCursor = cursor
+    cursor.toArray( this._processInitialValues.bind( this ) )
+  }
+}
 
 /**
  * Closes the cursor and creates the list
@@ -93,15 +93,15 @@ Search.prototype._onInitialValues = function( error, cursor ) {
  * @returns {void}
  */
 Search.prototype._processInitialValues = function( cursorError, values ){
-	if( cursorError ) {
-		this._onError( 'Error while iterating through cursor for initial values: ' + error.toString() );
-	} else {
-		this._initialCursor.close();
-		this._provider.log( 'Found ' + values.length + ' initial matches for ' + this._list.name, 3 );
-		this._populateList( values );
-		this._subscribeToChangeFeed();
-	}
-};
+  if( cursorError ) {
+    this._onError( 'Error while iterating through cursor for initial values: ' + error.toString() )
+  } else {
+    this._initialCursor.close()
+    this._provider.log( 'Found ' + values.length + ' initial matches for ' + this._list.name, 3 )
+    this._populateList( values )
+    this._subscribeToChangeFeed()
+  }
+}
 
 /**
  * Retrieves the primary keys from the list of retrieved documents
@@ -113,15 +113,15 @@ Search.prototype._processInitialValues = function( cursorError, values ){
  * @returns {void}
  */
 Search.prototype._populateList = function( values ) {
-	var recordNames = [],
-		i;
+  var recordNames = [],
+    i
 
-	for( i = 0; i < values.length; i++ ) {
-		recordNames.push( values[ i ][ PRIMARY_KEY ] );
-	}
+  for( i = 0; i < values.length; i++ ) {
+    recordNames.push( values[ i ][ PRIMARY_KEY ] )
+  }
 
-	this._list.setEntries( recordNames );
-};
+  this._list.setEntries( recordNames )
+}
 
 /**
  * Issues the same query again, but this time as a change feed
@@ -131,12 +131,12 @@ Search.prototype._populateList = function( values ) {
  * @returns {void}
  */
 Search.prototype._subscribeToChangeFeed = function() {
-	r
-		.table( this._query.table )
-		.filter( this._query.filter )
-		.changes({includeStates: true, squash: false })
-		.run( this._rethinkdbConnection, this._onChange.bind( this ) );
-};
+  r
+    .table( this._query.table )
+    .filter( this._query.filter )
+    .changes({includeStates: true, squash: false })
+    .run( this._rethinkdbConnection, this._onChange.bind( this ) )
+}
 
 /**
  * Processes an incoming change notification. This might be a new
@@ -150,13 +150,13 @@ Search.prototype._subscribeToChangeFeed = function() {
  * @returns {void}
  */
 Search.prototype._onChange = function( error, cursor ) {
-	if( error ) {
-		this._onError( 'Error while receiving change notification: ' + error );
-	} else {
-		this._changeFeedCursor = cursor;
-		cursor.each( this._readChange.bind( this ) );
-	}
-};
+  if( error ) {
+    this._onError( 'Error while receiving change notification: ' + error )
+  } else {
+    this._changeFeedCursor = cursor
+    cursor.each( this._readChange.bind( this ) )
+  }
+}
 
 /**
  * Reads the incoming change document and distuinguishes
@@ -168,20 +168,20 @@ Search.prototype._onChange = function( error, cursor ) {
  * @returns {void}
  */
 Search.prototype._readChange = function( cursorError, change ) {
-	if( change.state ) {
-		if( change.state === 'ready' ) {
-			this._changeFeedReady = true;
-		}
-	}
-	else if( cursorError ) {
-		this._onError( 'cursor error on change: ' + cursorError.toString() );
-	}
-	else {
-		if( this._changeFeedReady === true ) {
-			this._processChange( change );
-		}
-	}
-};
+  if( change.state ) {
+    if( change.state === 'ready' ) {
+      this._changeFeedReady = true
+    }
+  }
+  else if( cursorError ) {
+    this._onError( 'cursor error on change: ' + cursorError.toString() )
+  }
+  else {
+    if( this._changeFeedReady === true ) {
+      this._processChange( change )
+    }
+  }
+}
 
 /**
  * Differenciates between additions and deletions
@@ -192,21 +192,21 @@ Search.prototype._readChange = function( cursorError, change ) {
  * @returns {void}
  */
 Search.prototype._processChange = function( change ) {
-	// Should never occur, just in case it sends an update for an existing document
-	if( change.old_val !== null && change.new_val !== null ) {
-		return;
-	}
+  // Should never occur, just in case it sends an update for an existing document
+  if( change.old_val !== null && change.new_val !== null ) {
+    return
+  }
 
-	if( change.old_val === null ) {
-		this._provider.log( 'Added 1 new entry to ' + this._list.name, 3 );
-		this._list.addEntry( change.new_val[ PRIMARY_KEY ] );
-	}
+  if( change.old_val === null ) {
+    this._provider.log( 'Added 1 new entry to ' + this._list.name, 3 )
+    this._list.addEntry( change.new_val[ PRIMARY_KEY ] )
+  }
 
-	if( change.new_val === null ) {
-		this._provider.log( 'Removed 1 entry from ' + this._list.name, 3 );
-		this._list.removeEntry( change.old_val[ PRIMARY_KEY ] );
-	}
-};
+  if( change.new_val === null ) {
+    this._provider.log( 'Removed 1 entry from ' + this._list.name, 3 )
+    this._list.removeEntry( change.old_val[ PRIMARY_KEY ] )
+  }
+}
 
 /**
  * Error callback
@@ -217,8 +217,8 @@ Search.prototype._processChange = function( change ) {
  * @returns {void}
  */
 Search.prototype._onError = function( error ) {
-	this._provider.log( 'Error for ' + this._list.name + ': ' + error, 1 );
-};
+  this._provider.log( 'Error for ' + this._list.name + ': ' + error, 1 )
+}
 
 
-module.exports = Search;
+module.exports = Search

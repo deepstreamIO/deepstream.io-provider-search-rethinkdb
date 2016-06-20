@@ -1,68 +1,76 @@
-var QueryParser = require( '../src/query-parser' ),
-	log = jasmine.createSpy( 'log' ),
-	queryParser = new QueryParser({ log: log });
+const expect = require('chai').expect
+const sinon = require( 'sinon' )
+const sinonChai = require("sinon-chai")
+require('chai').use(sinonChai)
 
-describe( 'queries are parsed correctly', function(){
+const QueryParser = require( '../src/query-parser' )
+const log = sinon.spy()
+const queryParser = new QueryParser({ log: log })
 
-	it( 'parses queries with a single condition correctly', function(){
-		var parsedInput = queryParser.parseInput( 'search?{"table":"books","query":[["name","eq","Harry Potter"]]}' );
+describe( 'queries are parsed correctly', () => {
 
-		expect( parsedInput ).toEqual({
-			table: 'books',
-			query: [[ 'name', 'eq', 'Harry Potter' ]]
-		});
+  it( 'parses queries with a single condition correctly', () => {
+    var parsedInput = queryParser.parseInput( 'search?{"table":"books","query":[["name","eq","Harry Potter"]]}' )
 
-		expect( log ).not.toHaveBeenCalled();
-	});
+    expect( parsedInput ).to.deep.equal({
+      table: 'books',
+      query: [[ 'name', 'eq', 'Harry Potter' ]]
+    })
 
-	it( 'parses queries with multiple conditions correctly', function(){
-		var parsedInput = queryParser.parseInput( 'search?{"table":"books","query":[["name","eq","Harry Potter"],["price","gt",12.3],["publisher","match",".*random.*"]]}' );
+    expect( log ).to.have.not.been.called
+  })
 
-		expect( parsedInput ).toEqual({
-			table: 'books',
-			query: [
-				[ 'name', 'eq', 'Harry Potter' ],
-				[ 'price', 'gt', 12.3 ],
-				[ 'publisher', 'match', '.*random.*' ]
-			]
-		});
+  it( 'parses queries with multiple conditions correctly', () => {
+    var parsedInput = queryParser.parseInput(
+      `search?{"table":"books",
+      "query":[["name","eq","Harry Potter"],["price","gt",12.3],["publisher","match",".*random.*"]]}`
+    )
 
-		expect( log ).not.toHaveBeenCalled();
-	});
+    expect( parsedInput ).to.deep.equal({
+      table: 'books',
+      query: [
+        [ 'name', 'eq', 'Harry Potter' ],
+        [ 'price', 'gt', 12.3 ],
+        [ 'publisher', 'match', '.*random.*' ]
+      ]
+    })
 
-	it( 'errors for missing question marks', function(){
-		var parsedInput = queryParser.parseInput( 'search{"table":"books","query":[["name","eq","Harry Potter"]]}' );
-		expect( parsedInput ).toBe( null );
-		expect( log ).toHaveBeenCalledWith( 'QUERY ERROR | Missing ?', 1 );
-	});
+    expect( log ).to.have.not.been.called
+  })
 
-	it( 'errors for invalid JSON', function(){
-		var parsedInput = queryParser.parseInput( 'search?{"table":"books""query":[["name","eq","Harry Potter"]]}' );
-		expect( parsedInput ).toBe( null );
-		expect( log ).toHaveBeenCalledWith( 'QUERY ERROR | Invalid JSON', 1 );
-	});
+  it( 'errors for missing question marks', () => {
+    var parsedInput = queryParser.parseInput( 'search{"table":"books","query":[["name","eq","Harry Potter"]]}' )
+    expect( parsedInput ).to.equal( null )
+    expect( log ).to.have.been.calledWith( 'QUERY ERROR | Missing ?', 1 )
+  })
 
-	it( 'errors for missing table parameter', function(){
-		var parsedInput = queryParser.parseInput( 'search?{"query":[["name","eq","Harry Potter"]]}' );
-		expect( parsedInput ).toBe( null );
-		expect( log ).toHaveBeenCalledWith( 'QUERY ERROR | Missing parameter "table"', 1 );
-	});
+  it( 'errors for invalid JSON', () => {
+    var parsedInput = queryParser.parseInput( 'search?{"table":"books""query":[["name","eq","Harry Potter"]]}' )
+    expect( parsedInput ).to.equal( null )
+    expect( log ).to.have.been.calledWith( 'QUERY ERROR | Invalid JSON', 1 )
+  })
 
-	it( 'errors for missing query parameter', function(){
-		var parsedInput = queryParser.parseInput( 'search?{"table":"books"}' );
-		expect( parsedInput ).toBe( null );
-		expect( log ).toHaveBeenCalledWith( 'QUERY ERROR | Missing parameter "query"', 1 );
-	});
+  it( 'errors for missing table parameter', () => {
+    var parsedInput = queryParser.parseInput( 'search?{"query":[["name","eq","Harry Potter"]]}' )
+    expect( parsedInput ).to.equal( null )
+    expect( log ).to.have.been.calledWith( 'QUERY ERROR | Missing parameter "table"', 1 )
+  })
 
-	it( 'errors for malformed query', function(){
-		var parsedInput = queryParser.parseInput( 'search?{"table":"books","query":[["eq","Harry Potter"]]}' );
-		expect( parsedInput ).toBe( null );
-		expect( log ).toHaveBeenCalledWith( 'QUERY ERROR | Too few parameters', 1 );
-	});
+  it( 'errors for missing query parameter', () => {
+    var parsedInput = queryParser.parseInput( 'search?{"table":"books"}' )
+    expect( parsedInput ).to.equal( null )
+    expect( log ).to.have.been.calledWith( 'QUERY ERROR | Missing parameter "query"', 1 )
+  })
 
-	it( 'errors for unknown operator', function(){
-		var parsedInput = queryParser.parseInput( 'search?{"table":"books","query":[["name","ex","Harry Potter"]]}' );
-		expect( parsedInput ).toBe( null );
-		expect( log ).toHaveBeenCalledWith( 'QUERY ERROR | Unknown operator ex', 1 );
-	});
-});
+  it( 'errors for malformed query', () => {
+    var parsedInput = queryParser.parseInput( 'search?{"table":"books","query":[["eq","Harry Potter"]]}' )
+    expect( parsedInput ).to.equal( null )
+    expect( log ).to.have.been.calledWith( 'QUERY ERROR | Too few parameters', 1 )
+  })
+
+  it( 'errors for unknown operator', () => {
+    var parsedInput = queryParser.parseInput( 'search?{"table":"books","query":[["name","ex","Harry Potter"]]}' )
+    expect( parsedInput ).to.equal( null )
+    expect( log ).to.have.been.calledWith( 'QUERY ERROR | Unknown operator ex', 1 )
+  })
+})
