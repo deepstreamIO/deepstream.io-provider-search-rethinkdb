@@ -143,6 +143,9 @@ Provider.prototype._initialiseDeepstreamClient = function() {
     }
 
     this._deepstreamClient = new DeepstreamClient( this._config.deepstreamUrl );
+    this._deepstreamClient.on( 'error', function( error ) {
+      console.log( error )
+    } );
     this._deepstreamClient.login( this._config.deepstreamCredentials, this._onDeepstreamLogin.bind( this ) );
   }
 };
