@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/deepstreamIO/deepstream.io-provider-search-rethinkdb",
   "dependencies": {
-    "deepstream.io-client-js": "0.5.0",
+    "deepstream.io-client-js": "1.0.0",
     "rethinkdb": "2.3.2"
   },
   "devDependencies": {
