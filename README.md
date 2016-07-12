@@ -18,7 +18,7 @@ ds.record.getRecord( 'book/i95ny80q-2bph9txxqxg' ).set({
 });
 ```
 
-and use [deepstream.io's RethinkDb storage connector](https://github.com/hoxton-one/deepstream.io-storage-rethinkdb) with:
+and use [deepstream.io's RethinkDb storage connector](https://github.com/deepstreamIO/deepstream.io-storage-rethinkdb) with:
 
 ```js
 { splitChar: '/' }
