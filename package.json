@@ -36,7 +36,7 @@
     "deepstream.io": "^1.0.0",
     "deepstream.io-storage-rethinkdb": "git+https://github.com/deepstreamIO/deepstream.io-storage-rethinkdb.git",
     "eslint": "^3.0.1",
-    "eslint-config-airbnb": "^3.1.0",
+    "eslint-config-airbnb": "^10.0.0",
     "istanbul": "^0.4.3",
     "mocha": "^3.0.0",
     "sinon": "^1.17.4",
