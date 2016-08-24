@@ -30,7 +30,6 @@ var Search = function( provider, query, listName, rethinkdbConnection, deepstrea
   this._rethinkdbConnection = rethinkdbConnection
   this._deepstreamClient = deepstreamClient
   this._list = this._deepstreamClient.record.getList( listName )
-  this._list.on( 'delete', this.destroy.bind( this, false ) )
   this._initialCursor = null
   this._changeFeedCursor = null
 
