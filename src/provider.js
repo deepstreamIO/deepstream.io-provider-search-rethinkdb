@@ -24,6 +24,7 @@ var Provider = function( config ) {
   this._deepstreamClient = null;
   this._listName = config.listName || 'search';
   this._searches = {};
+  this._deleting = {};
 };
 
 util.inherits( Provider, EventEmitter );
@@ -216,8 +217,14 @@ Provider.prototype._onSubscription = function( name, subscribed ) {
 
   query = this._queryParser.createQuery( parsedInput );
 
+  // ignore the first subscription post delete, since it takes one to delete
+  if( this._deleting[ name ] ) {
+    delete this._deleting[ name ];
+    return;
+  }
   if( this._searches[ name ] ) {
-    this._searches[ name ].destroy( true );
+    this._deleting[ name ] = true;
+    this._searches[ name ].destroy();
     delete this._searches[ name ];
   }
 
