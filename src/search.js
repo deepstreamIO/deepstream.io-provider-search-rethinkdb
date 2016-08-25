@@ -167,15 +167,13 @@ Search.prototype._onChange = function( error, cursor ) {
  * @returns {void}
  */
 Search.prototype._readChange = function( cursorError, change ) {
-  if( change.state ) {
+  if( cursorError ) {
+    this._onError( 'cursor error on change: ' + cursorError.toString() )
+  } else if( change.state ) {
     if( change.state === 'ready' ) {
       this._changeFeedReady = true
     }
-  }
-  else if( cursorError ) {
-    this._onError( 'cursor error on change: ' + cursorError.toString() )
-  }
-  else {
+  } else {
     if( this._changeFeedReady === true ) {
       this._processChange( change )
     }
