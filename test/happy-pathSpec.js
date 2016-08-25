@@ -39,23 +39,28 @@ describe( 'the provider allows for the searching of table', () => {
     server.start()
   })
 
-  after( (done) => {
-    server.on('stopped', done )
-    server.stop()
-  })
-
-  it( 'starts the provider', ( done ) => {
+  before( done => {
     testHelper.startProvider(( _provider ) => {
       provider = _provider
       done()
     })
   })
 
-  it( 'establishes a connection to deepstream', ( done ) => {
+  before( done => {
     testHelper.connectToDeepstream(( err, _ds ) => {
       ds = _ds
       done( err )
     })
+  })
+
+  after( done => {
+    ds.record.getRecord( 'ohy' ).delete()
+    testHelper.cleanUp( provider, ds, done )
+  })
+
+  after( (done) => {
+    server.on('stopped', done )
+    server.stop()
   })
 
   it( 'can retrieve records from the table', ( done ) => {
@@ -112,9 +117,6 @@ describe( 'the provider allows for the searching of table', () => {
     })
   })
 
-  it( 'cleans up', ( done ) => {
-    ds.record.getRecord( 'ohy' ).delete()
-    testHelper.cleanUp( provider, ds, done )
-  })
+
 
 })
