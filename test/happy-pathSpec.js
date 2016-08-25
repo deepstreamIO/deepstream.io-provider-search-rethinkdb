@@ -6,7 +6,7 @@ const Deepstream = require( 'deepstream.io' )
 const RethinkDBStorageConnector = require( 'deepstream.io-storage-rethinkdb' )
 var server = null
 
-describe.only( 'the provider allows for the searching of table', () => {
+describe( 'the provider allows for the searching of table', () => {
   var provider
   var ds
   var spanishBooks
@@ -67,9 +67,9 @@ describe.only( 'the provider allows for the searching of table', () => {
   })
 
   it( 'issues a simple search for books in spanish and finds Don Quixote', ( done ) => {
-    var subscription = (arg) => {
+    const subscription = (arg) => {
       expect( arg ).to.deep.equal([ 'don' ])
-      spanishBooks.unsubscribe( this )
+      spanishBooks.unsubscribe( subscription )
       done()
     }
     spanishBooks = ds.record.getList( 'search?' + spanishBooksQuery )
@@ -84,9 +84,9 @@ describe.only( 'the provider allows for the searching of table', () => {
       released: 1967,
       copiesSold: 50000000
     })
-    var subscription = (arg) => {
+    const subscription = (arg) => {
       expect( arg ).to.deep.equal([ 'don', 'ohy' ])
-      spanishBooks.unsubscribe( this )
+      spanishBooks.unsubscribe( subscription )
       done()
     }
     spanishBooks = ds.record.getList( 'search?' + spanishBooksQuery )
