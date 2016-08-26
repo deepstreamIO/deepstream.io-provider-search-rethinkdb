@@ -21,6 +21,7 @@ describe( 'the provider allows for the searching of table', () => {
   })
 
   before((done) => {
+    console.log('before 1')
     server = new Deepstream()
     server.set( 'storage', new RethinkDBStorageConnector( {
       host: connectionParams.rethinkdb.host,
@@ -35,30 +36,39 @@ describe( 'the provider allows for the searching of table', () => {
       log: function() {},
       isReady: true
     } )
-    server.on('started', done)
+    server.on('started', function() {
+      console.log('before 1/cb')
+      done()
+    })
     server.start()
   })
 
   before( done => {
+    console.log('before 2')
     testHelper.startProvider(( _provider ) => {
+      console.log('before 2/cb')
       provider = _provider
       done()
     })
   })
 
   before( done => {
+    console.log('before 3')
     testHelper.connectToDeepstream(( err, _ds ) => {
+      console.log('before 3/cb')
       ds = _ds
       done() // ignore error due to broken cleanup
     })
   })
 
   after( done => {
+    console.log('after 1')
     ds.record.getRecord( 'ohy' ).delete()
     testHelper.cleanUp( provider, ds, done )
   })
 
   after( (done) => {
+    console.log('after 2')
     server.on('stopped', done )
     server.stop()
   })
