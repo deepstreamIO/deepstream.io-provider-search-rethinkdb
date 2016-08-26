@@ -49,7 +49,7 @@ describe( 'the provider allows for the searching of table', () => {
   before( done => {
     testHelper.connectToDeepstream(( err, _ds ) => {
       ds = _ds
-      done( err )
+      done() // ignore error due to broken cleanup
     })
   })
 
