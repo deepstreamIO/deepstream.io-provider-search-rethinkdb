@@ -238,7 +238,7 @@ Provider.prototype._onSubscriptionAdded = function( name ) {
  * @returns {void}
  */
 Provider.prototype._onSubscriptionRemoved = function( name ) {
-  this._searches[ name ].destroy( true );
+  this._searches[ name ].destroy();
   delete this._searches[ name ];
 };
 

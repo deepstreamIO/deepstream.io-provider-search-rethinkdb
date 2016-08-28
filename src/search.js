@@ -45,17 +45,13 @@ var Search = function( provider, query, listName, rethinkdbConnection, deepstrea
  * as a result of an unsubscribe call to the record listener, but not if called
  * as a result of the list being deleted.
  *
- * @param   {Boolean} deleteList Whether the list should be deleted as well
- *
  * @public
  * @returns {void}
  */
-Search.prototype.destroy = function( deleteList ) {
+Search.prototype.destroy = function() {
   this._provider.log( 'Removing search ' + this._list.name )
 
-  if( deleteList ) {
-    this._list.delete()
-  }
+  this._list.delete()
 
   this._changeFeedCursor.close()
   this._changeFeedCursor = null
