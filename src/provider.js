@@ -199,31 +199,47 @@ Provider.prototype._ready = function() {
  * @private
  * @returns {void}
  */
-Provider.prototype._onSubscription = function( name, subscribed ) {
+Provider.prototype._onSubscription = function( name, subscribed, response ) {
 
   if( subscribed ) {
+    response.accept();
     this.log( 'received subscription for ' + name, 2 );
+    this._onSubscriptionAdded( name );
   } else {
     this.log( 'discard subscription for ' + name, 2 );
+    this._onSubscriptionRemoved( name );
   }
 
+
+};
+
+/**
+ * When a search has been started
+ *
+ * @private
+ * @returns {void}
+ */
+Provider.prototype._onSubscriptionAdded = function( name ) {
   var parsedInput = this._queryParser.parseInput( name ),
-    query;
+      query;
 
   if( parsedInput === null ) {
     return;
   }
 
   query = this._queryParser.createQuery( parsedInput );
+  this._searches[ name ] = new Search( this, query, name, this._rethinkDbConnection, this._deepstreamClient );
+};
 
-  if( this._searches[ name ] ) {
-    this._searches[ name ].destroy( true );
-    delete this._searches[ name ];
-  }
-
-  if( subscribed === true ) {
-    this._searches[ name ] = new Search( this, query, name, this._rethinkDbConnection, this._deepstreamClient );
-  }
+/**
+ * When a search has been started
+ *
+ * @private
+ * @returns {void}
+ */
+Provider.prototype._onSubscriptionRemoved = function( name ) {
+  this._searches[ name ].destroy( true );
+  delete this._searches[ name ];
 };
 
 module.exports = Provider;
