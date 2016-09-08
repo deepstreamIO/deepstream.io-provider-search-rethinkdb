@@ -29,8 +29,7 @@ var Search = function( provider, query, listName, rethinkdbConnection, deepstrea
   this._query = query
   this._rethinkdbConnection = rethinkdbConnection
   this._deepstreamClient = deepstreamClient
-  this._list = this._deepstreamClient.record.getList( listName )
-  this._list.on( 'delete', this.destroy.bind( this, false ) )
+  this._listName = listName
   this._initialCursor = null
   this._changeFeedCursor = null
 
@@ -50,16 +49,14 @@ var Search = function( provider, query, listName, rethinkdbConnection, deepstrea
  * @public
  * @returns {void}
  */
-Search.prototype.destroy = function( deleteList ) {
-  this._provider.log( 'Removing search ' + this._list.name )
+Search.prototype.destroy = function() {
+  this._provider.log( 'Removing search ' + this._listName )
 
-  if( deleteList ) {
-    this._list.delete()
-  }
+  var list = this._deepstreamClient.record.getList( this._listName )
+  list.delete()
 
   this._changeFeedCursor.close()
   this._changeFeedCursor = null
-  this._list = null
   this._rethinkdbConnection = null
   this._deepstreamClient = null
 }
@@ -97,7 +94,7 @@ Search.prototype._processInitialValues = function( cursorError, values ){
     this._onError( 'Error while iterating through cursor for initial values: ' + error.toString() )
   } else {
     this._initialCursor.close()
-    this._provider.log( 'Found ' + values.length + ' initial matches for ' + this._list.name, 3 )
+    this._provider.log( 'Found ' + values.length + ' initial matches for ' + this._listName, 3 )
     this._populateList( values )
     this._subscribeToChangeFeed()
   }
@@ -120,7 +117,9 @@ Search.prototype._populateList = function( values ) {
     recordNames.push( values[ i ][ PRIMARY_KEY ] )
   }
 
-  this._list.setEntries( recordNames )
+  var list = this._deepstreamClient.record.getList( this._listName )
+  list.setEntries( recordNames )
+  list.discard()
 }
 
 /**
@@ -168,15 +167,13 @@ Search.prototype._onChange = function( error, cursor ) {
  * @returns {void}
  */
 Search.prototype._readChange = function( cursorError, change ) {
-  if( change.state ) {
+  if( cursorError ) {
+    this._onError( 'cursor error on change: ' + cursorError.toString() )
+  } else if( change.state ) {
     if( change.state === 'ready' ) {
       this._changeFeedReady = true
     }
-  }
-  else if( cursorError ) {
-    this._onError( 'cursor error on change: ' + cursorError.toString() )
-  }
-  else {
+  } else {
     if( this._changeFeedReady === true ) {
       this._processChange( change )
     }
@@ -197,15 +194,19 @@ Search.prototype._processChange = function( change ) {
     return
   }
 
+  var list = this._deepstreamClient.record.getList( this._listName )
+
   if( change.old_val === null ) {
-    this._provider.log( 'Added 1 new entry to ' + this._list.name, 3 )
-    this._list.addEntry( change.new_val[ PRIMARY_KEY ] )
+    this._provider.log( 'Added 1 new entry to ' + this._listName, 3 )
+    list.addEntry( change.new_val[ PRIMARY_KEY ] )
   }
 
   if( change.new_val === null ) {
-    this._provider.log( 'Removed 1 entry from ' + this._list.name, 3 )
-    this._list.removeEntry( change.old_val[ PRIMARY_KEY ] )
+    this._provider.log( 'Removed 1 entry from ' + this._listName, 3 )
+    list.removeEntry( change.old_val[ PRIMARY_KEY ] )
   }
+
+  list.discard()
 }
 
 /**
@@ -217,7 +218,7 @@ Search.prototype._processChange = function( change ) {
  * @returns {void}
  */
 Search.prototype._onError = function( error ) {
-  this._provider.log( 'Error for ' + this._list.name + ': ' + error, 1 )
+  this._provider.log( 'Error for ' + this._listName + ': ' + error, 1 )
 }
 
 
