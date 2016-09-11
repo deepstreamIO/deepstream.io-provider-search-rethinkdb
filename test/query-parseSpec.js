@@ -5,7 +5,7 @@ require('chai').use(sinonChai)
 
 const QueryParser = require( '../src/query-parser' )
 const log = sinon.spy()
-const queryParser = new QueryParser({ log: log })
+const queryParser = new QueryParser({ log: (log) })
 
 describe( 'queries are parsed correctly', () => {
 
