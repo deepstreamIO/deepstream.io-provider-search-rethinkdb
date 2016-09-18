@@ -29,6 +29,7 @@ describe( 'the provider allows for the searching of table', () => {
       defaultTable: connectionParams.testTable
     }))
     server.set( 'storageExclusion', /^search.*/ )
+    server.set( 'tcpPort', 7071)
     server.set( 'showLogo', false)
     server.set( 'logger', {
       setLogLevel: function() {},

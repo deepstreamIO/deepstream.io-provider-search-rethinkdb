@@ -5,5 +5,5 @@ exports.rethinkdb = {
 };
 exports.primaryKey = 'ds_id';
 exports.testTable = 'test';
-exports.deepstreamUrl = 'localhost:6021';
+exports.deepstreamUrl = 'localhost:7071';
 exports.deepstreamCredentials = { username: 'rethinkdb-search-provider' };
