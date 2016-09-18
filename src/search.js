@@ -30,7 +30,6 @@ var Search = function( provider, query, listName, rethinkdbConnection, deepstrea
   this._rethinkdbConnection = rethinkdbConnection
   this._deepstreamClient = deepstreamClient
   this._list = this._deepstreamClient.record.getList( listName )
-  this._list.on( 'delete', this.destroy.bind( this, false ) )
   this._initialCursor = null
   this._changeFeedCursor = null
 
@@ -45,17 +44,13 @@ var Search = function( provider, query, listName, rethinkdbConnection, deepstrea
  * as a result of an unsubscribe call to the record listener, but not if called
  * as a result of the list being deleted.
  *
- * @param   {Boolean} deleteList Whether the list should be deleted as well
- *
  * @public
  * @returns {void}
  */
-Search.prototype.destroy = function( deleteList ) {
+Search.prototype.destroy = function() {
   this._provider.log( 'Removing search ' + this._list.name )
 
-  if( deleteList ) {
-    this._list.delete()
-  }
+  this._list.delete()
 
   this._changeFeedCursor.close()
   this._changeFeedCursor = null
@@ -168,13 +163,13 @@ Search.prototype._onChange = function( error, cursor ) {
  * @returns {void}
  */
 Search.prototype._readChange = function( cursorError, change ) {
-  if( change.state ) {
+  if( cursorError ) {
+    this._onError( 'cursor error on change: ' + cursorError.toString() )
+  }
+  else if( change.state ) {
     if( change.state === 'ready' ) {
       this._changeFeedReady = true
     }
-  }
-  else if( cursorError ) {
-    this._onError( 'cursor error on change: ' + cursorError.toString() )
   }
   else {
     if( this._changeFeedReady === true ) {

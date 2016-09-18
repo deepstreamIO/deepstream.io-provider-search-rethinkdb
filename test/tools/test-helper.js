@@ -41,6 +41,8 @@ exports.connectToDeepstream = function( done ) {
 
 exports.cleanUp = function( provider, deepstream, done ) {
 	provider.stop();
-	deepstream.close();
-	done();
+	setTimeout( () => {
+		deepstream.close();
+		done();
+	}, 100 );
 };
