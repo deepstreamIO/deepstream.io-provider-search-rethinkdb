@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "coveralls": "^2.11.9",
+    "coveralls": "^2.11.14",
     "deepstream.io": "latest",
     "deepstream.io-storage-rethinkdb": "latest",
     "eslint": "^3.0.1",
