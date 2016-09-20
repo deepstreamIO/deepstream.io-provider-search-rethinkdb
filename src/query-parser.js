@@ -68,13 +68,15 @@ QueryParser.prototype.parseInput = function( input ) {
     search,
     parsedInput,
     condition,
-    i
+    i,
+    index
 
-  if( input.indexOf( '?' ) === -1 ) {
+  index = input.indexOf( '?' )
+  if( index === -1 ) {
     return this._queryError( input, 'Missing ?' )
   }
 
-  search = input.split( '?' )[ 1 ]
+  search = input.substr(index + 1)
 
   try{
     parsedInput = JSON.parse( search )
