@@ -28,7 +28,7 @@ exports.startProvider = function( done ) {
 exports.connectToDeepstream = function( done ) {
 	var ds = new DeepstreamClient( connectionParams.deepstreamUrl );
 	ds.on('error', function(message) {
-		done(new Error(arguments[1]))
+		console.log( 'ERROR on client', message );
 	})
 	ds.login( { username: 'testClient' }, function( success ){
 		if( !success ) {
