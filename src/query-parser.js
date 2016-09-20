@@ -32,7 +32,7 @@ var QueryParser = function( provider ) {
 QueryParser.prototype.createQuery = function( parsedInput ) {
   var row,
     condition,
-    query = null,
+    query = true,
     i
 
   for( i = 0; i < parsedInput.query.length; i++ ) {
@@ -40,7 +40,7 @@ QueryParser.prototype.createQuery = function( parsedInput ) {
 
     row = rethinkdb.row( condition[ 0 ] )[ condition[ 1 ] ]( condition[ 2 ] )
 
-    if( query === null ) {
+    if( query === true ) {
       query = row
     } else {
       query = query.and( row )
