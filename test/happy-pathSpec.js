@@ -33,7 +33,9 @@ describe( 'the provider allows for the searching of table', () => {
     server.set( 'showLogo', false)
     server.set( 'logger', {
       setLogLevel: function() {},
-      log: function() {},
+      log: function() {
+      	console.log( arguments )
+      },
       isReady: true
     } )
     server.on('started', () => {
