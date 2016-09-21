@@ -33,10 +33,7 @@ var Search = function( provider, query, listName, rethinkdbConnection, deepstrea
   this._initialCursor = null
   this._changeFeedCursor = null
 
-  r
-    .table( this._query.table )
-    .filter( this._query.filter )
-    .run( this._rethinkdbConnection, this._onInitialValues.bind( this ) )
+  this._query.run( this._rethinkdbConnection, this._onInitialValues.bind( this ) )
 }
 
 /**
@@ -126,9 +123,7 @@ Search.prototype._populateList = function( values ) {
  * @returns {void}
  */
 Search.prototype._subscribeToChangeFeed = function() {
-  r
-    .table( this._query.table )
-    .filter( this._query.filter )
+  this._query
     .changes({includeStates: true, squash: false })
     .run( this._rethinkdbConnection, this._onChange.bind( this ) )
 }
