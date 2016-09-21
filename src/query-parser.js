@@ -19,12 +19,14 @@ var QueryParser = function( provider ) {
  * "eq" (equals)
  * "match" (RegEx match)
  * "gt" (greater than)
+ * "ge" (greater then or equal)
  * "lt" (lesser than)
+ * "le" (lesser then or equal)
  * "ne" (not equal)
  *
  * @todo  Support for OR might come in handy
  *
- * @param   {String} name The recordName for the list, including search parameters
+ * @param   {Object} parsedInput the output of QueryParser.prototype.parseInput
  *
  * @public
  * @returns {Object} query
@@ -55,7 +57,7 @@ QueryParser.prototype.createQuery = function( parsedInput ) {
  *
  * search?{ "table": "people", "query": [[ "name", "ma", "Wolf" ], [ "age", "gt", "25" ] ] }
  *
- * cuts of the search? part and parses the rest as JSON. Validates the resulting structure.
+ * cuts off the search? part and parses the rest as JSON. Validates the resulting structure.
  *
  * @param   {String} input the name of the list the user subscribed to
  *
@@ -64,7 +66,7 @@ QueryParser.prototype.createQuery = function( parsedInput ) {
  */
 QueryParser.prototype.parseInput = function( input ) {
 
-  var operators = [ 'eq', 'match', 'gt', 'lt', 'ne'],
+  var operators = [ 'eq', 'match', 'gt', 'ge', 'lt', 'le', 'ne' ],
     search,
     parsedInput,
     condition,
