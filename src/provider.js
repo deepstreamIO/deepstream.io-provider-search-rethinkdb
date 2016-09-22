@@ -232,7 +232,7 @@ Provider.prototype._onSubscriptionAdded = function( name ) {
 };
 
 /**
- * When a search has been started
+ * When a search has been removed
  *
  * @private
  * @returns {void}
