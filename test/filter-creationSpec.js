@@ -5,7 +5,7 @@ const queryParser = new QueryParser({ log: () => {} })
 function getFilter( queryJson ) {
   var searchString = 'search?' + JSON.stringify( queryJson)
   var query = queryParser.createQuery( queryParser.parseInput( searchString ) )
-  return query.filter.toString()
+  return query.toString()
 }
 
 describe( 'the provider creates the correct filter for each query', () => {
@@ -15,7 +15,7 @@ describe( 'the provider creates the correct filter for each query', () => {
       table: 'someTable',
       query: [[ 'title', 'eq', 'Don Quixote' ] ]
     })
-    expect( filterString ).to.equal( 'r.row("title").eq("Don Quixote")' )
+    expect( filterString ).to.equal( 'r.table("someTable").filter(r.row("title").eq("Don Quixote"))' )
   })
 
   it( 'creates the right filter for a query with multiple conditions', () => {
@@ -29,7 +29,7 @@ describe( 'the provider creates the correct filter for each query', () => {
     })
 
     expect( filterString ).to.equal(
-      'r.row("title").eq("Don Quixote").and(r.row("released").gt(1700)).and(r.row("author").match(".*eg"))'
+      'r.table("someTable").filter(r.row("title").eq("Don Quixote")).filter(r.row("released").gt(1700)).filter(r.row("author").match(".*eg"))'
     )
   })
 })
