@@ -31,7 +31,7 @@ var QueryParser = function( provider ) {
  * @param   {Object} parsedInput the output of QueryParser.prototype.parseInput
  *
  * @public
- * @returns {Object} prepared rethink query
+ * @returns {Object} prepared rethinkdb query
  */
 QueryParser.prototype.createQuery = function( parsedInput ) {
   var predicate,
@@ -39,7 +39,7 @@ QueryParser.prototype.createQuery = function( parsedInput ) {
     query,
     i
 
-  query = rethink.table( parsedInput.table )
+  query = rethinkdb.table( parsedInput.table )
 
   for( i = 0; i < parsedInput.query.length; i++ ) {
     condition = parsedInput.query[ i ]
@@ -48,7 +48,7 @@ QueryParser.prototype.createQuery = function( parsedInput ) {
       predicate = rethinkdb.row( condition[ 0 ] )[ condition[ 1 ] ]( condition[ 2 ] )
     } else {
       predicate = function( record ) {
-        return rethink.expr( condition[ 2 ] ).contains( record( condition[ 0 ] ) )
+        return rethinkdb.expr( condition[ 2 ] ).contains( record( condition[ 0 ] ) )
       }
     }
 
