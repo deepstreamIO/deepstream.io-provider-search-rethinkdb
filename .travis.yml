@@ -20,7 +20,7 @@ node_js:
   - "4.4.5"
 
 script:
-  - npm run test
+  - npm run coverage
 
 after_script:
   - "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
