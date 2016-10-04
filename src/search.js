@@ -26,17 +26,13 @@ var Search = function( provider, query, listName, rethinkdbConnection, deepstrea
   this.subscriptions = 0
 
   this._provider = provider
-  this._query = query
-  this._rethinkdbConnection = rethinkdbConnection
-  this._deepstreamClient = deepstreamClient
-  this._list = this._deepstreamClient.record.getList( listName )
-  this._initialCursor = null
+  this._list = deepstreamClient.record.getList( listName )
   this._changeFeedCursor = null
+  this._initialValues = Object.create( null ) // new Set() would be better
 
-  r
-    .table( this._query.table )
-    .filter( this._query.filter )
-    .run( this._rethinkdbConnection, this._onInitialValues.bind( this ) )
+  query( PRIMARY_KEY )
+    .changes({ includeStates: true, includeInitial: true, squash: false })
+    .run( rethinkdbConnection, this._onChange.bind( this ) )
 }
 
 /**
@@ -51,86 +47,10 @@ Search.prototype.destroy = function() {
   this._provider.log( 'Removing search ' + this._list.name )
 
   this._list.delete()
+  this._list = null
 
   this._changeFeedCursor.close()
   this._changeFeedCursor = null
-  this._list = null
-  this._rethinkdbConnection = null
-  this._deepstreamClient = null
-}
-
-/**
- * Callback once the entries that currently match the search criteria
- * are retrieved from RethinkDb
- *
- * @param   {RqlRuntimeError} error or null
- * @param   {RethinkDb} cursor A one off result cursor
- *
- * @private
- * @returns {void}
- */
-Search.prototype._onInitialValues = function( error, cursor ) {
-  if( error ) {
-    this._onError( 'Error while retrieving initial value: ' + error.toString() )
-  } else {
-    this._initialCursor = cursor
-    cursor.toArray( this._processInitialValues.bind( this ) )
-  }
-}
-
-/**
- * Closes the cursor and creates the list
- *
- * @param   {RqlRuntimeError} cursorError or null
- * @param   {Array} values    the full retrieved documents
- *
- * @private
- * @returns {void}
- */
-Search.prototype._processInitialValues = function( cursorError, values ){
-  if( cursorError ) {
-    this._onError( 'Error while iterating through cursor for initial values: ' + error.toString() )
-  } else {
-    this._initialCursor.close()
-    this._provider.log( 'Found ' + values.length + ' initial matches for ' + this._list.name, 3 )
-    this._populateList( values )
-    this._subscribeToChangeFeed()
-  }
-}
-
-/**
- * Retrieves the primary keys from the list of retrieved documents
- * and populates the list with them
- *
- * @param   {Array} values    the full retrieved documents
- *
- * @private
- * @returns {void}
- */
-Search.prototype._populateList = function( values ) {
-  var recordNames = [],
-    i
-
-  for( i = 0; i < values.length; i++ ) {
-    recordNames.push( values[ i ][ PRIMARY_KEY ] )
-  }
-
-  this._list.setEntries( recordNames )
-}
-
-/**
- * Issues the same query again, but this time as a change feed
- * that will be kept open
- *
- * @private
- * @returns {void}
- */
-Search.prototype._subscribeToChangeFeed = function() {
-  r
-    .table( this._query.table )
-    .filter( this._query.filter )
-    .changes({includeStates: true, squash: false })
-    .run( this._rethinkdbConnection, this._onChange.bind( this ) )
 }
 
 /**
@@ -146,7 +66,11 @@ Search.prototype._subscribeToChangeFeed = function() {
  */
 Search.prototype._onChange = function( error, cursor ) {
   if( error ) {
-    this._onError( 'Error while receiving change notification: ' + error )
+    if( this._initialValues ) {
+      this._onError( 'Error while retrieving initial value: ' + error.toString() )
+    } else {
+      this._onError( 'Error while receiving change notification: ' + error )
+    }
   } else {
     this._changeFeedCursor = cursor
     cursor.each( this._readChange.bind( this ) )
@@ -168,18 +92,64 @@ Search.prototype._readChange = function( cursorError, change ) {
   }
   else if( change.state ) {
     if( change.state === 'ready' ) {
-      this._changeFeedReady = true
+      this._populateList()
     }
   }
   else {
-    if( this._changeFeedReady === true ) {
+    if( this._initialValues ) {
+      this._processInitialValues( change )
+    } else {
       this._processChange( change )
     }
   }
 }
 
 /**
- * Differenciates between additions and deletions
+ * Retrieves the primary keys from the list of retrieved documents
+ * and populates the list with them
+ *
+ * @param   {Array} values    the full retrieved documents
+ *
+ * @private
+ * @returns {void}
+ */
+Search.prototype._populateList = function() {
+  var recordNames = [],
+    k
+
+  for( k in this._initialValues ) {
+    if( Object.prototype.hasOwnProperty.call( this._initialValues, k ) ) {
+      recordNames.push( k )
+    }
+  }
+  delete this._initialValues;
+
+  this._provider.log( 'Found ' + recordNames.length + ' initial matches for ' + this._list.name, 3 )
+  this._list.setEntries( recordNames )
+}
+
+/**
+ * Adds/removes initial values till rethink declares the values ready
+ *
+ * @param   {Object} change   A map with an old_val and a new_val key
+ *
+ * @private
+ * @returns {void}
+ */
+Search.prototype._processInitialValues = function( change ) {
+  if( change.new_val ) {
+    this._provider.log( 'Added 1 initial entry to ' + this._list.name, 3 )
+    this._initialValues[ change.new_val ] = true
+  }
+
+  if( change.old_val ) {
+    this._provider.log( 'Removed 1 initial entry from ' + this._list.name, 3 )
+    delete this._initialValues[ change.old_val ]
+  }
+}
+
+/**
+ * Differentiates between additions and deletions
  *
  * @param   {Object} change   A map with an old_val and a new_val key
  *
@@ -194,12 +164,12 @@ Search.prototype._processChange = function( change ) {
 
   if( change.old_val === null ) {
     this._provider.log( 'Added 1 new entry to ' + this._list.name, 3 )
-    this._list.addEntry( change.new_val[ PRIMARY_KEY ] )
+    this._list.addEntry( change.new_val )
   }
 
   if( change.new_val === null ) {
     this._provider.log( 'Removed 1 entry from ' + this._list.name, 3 )
-    this._list.removeEntry( change.old_val[ PRIMARY_KEY ] )
+    this._list.removeEntry( change.old_val )
   }
 }
 

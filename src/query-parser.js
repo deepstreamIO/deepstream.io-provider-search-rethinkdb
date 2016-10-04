@@ -19,35 +19,43 @@ var QueryParser = function( provider ) {
  * "eq" (equals)
  * "match" (RegEx match)
  * "gt" (greater than)
+ * "ge" (greater then or equal)
  * "lt" (lesser than)
+ * "le" (lesser then or equal)
  * "ne" (not equal)
+ * "in" (matches a member of supplied array)
  *
  * @todo  Support for OR might come in handy
+ * @todo  `in` doesn't take advantage of indexes where they exist, enhancement
  *
- * @param   {String} name The recordName for the list, including search parameters
+ * @param   {Object} parsedInput the output of QueryParser.prototype.parseInput
  *
  * @public
- * @returns {Object} query
+ * @returns {Object} prepared rethinkdb query
  */
 QueryParser.prototype.createQuery = function( parsedInput ) {
-  var row,
+  var predicate,
     condition,
-    query = null,
+    query,
     i
+
+  query = rethinkdb.table( parsedInput.table )
 
   for( i = 0; i < parsedInput.query.length; i++ ) {
     condition = parsedInput.query[ i ]
 
-    row = rethinkdb.row( condition[ 0 ] )[ condition[ 1 ] ]( condition[ 2 ] )
-
-    if( query === null ) {
-      query = row
+    if( condition[ 1 ] !== 'in' ) {
+      predicate = rethinkdb.row( condition[ 0 ] )[ condition[ 1 ] ]( condition[ 2 ] )
     } else {
-      query = query.and( row )
+      predicate = function( record ) {
+        return rethinkdb.expr( condition[ 2 ] ).contains( record( condition[ 0 ] ) )
+      }
     }
+
+    query = query.filter( predicate )
   }
 
-  return { table: parsedInput.table, filter: query }
+  return query
 }
 
 /**
@@ -55,7 +63,7 @@ QueryParser.prototype.createQuery = function( parsedInput ) {
  *
  * search?{ "table": "people", "query": [[ "name", "ma", "Wolf" ], [ "age", "gt", "25" ] ] }
  *
- * cuts of the search? part and parses the rest as JSON. Validates the resulting structure.
+ * cuts off the search? part and parses the rest as JSON. Validates the resulting structure.
  *
  * @param   {String} input the name of the list the user subscribed to
  *
@@ -64,17 +72,20 @@ QueryParser.prototype.createQuery = function( parsedInput ) {
  */
 QueryParser.prototype.parseInput = function( input ) {
 
-  var operators = [ 'eq', 'match', 'gt', 'lt', 'ne'],
+  var operators = [ 'eq', 'match', 'gt', 'ge', 'lt', 'le', 'ne', 'in' ],
     search,
     parsedInput,
     condition,
-    i
+    i,
+    index,
+    valueIsArray
 
-  if( input.indexOf( '?' ) === -1 ) {
+  index = input.indexOf( '?' )
+  if( index === -1 ) {
     return this._queryError( input, 'Missing ?' )
   }
 
-  search = input.split( '?' )[ 1 ]
+  search = input.substr(index + 1)
 
   try{
     parsedInput = JSON.parse( search )
@@ -99,6 +110,12 @@ QueryParser.prototype.parseInput = function( input ) {
 
     if( operators.indexOf( condition[ 1 ] ) === -1 ) {
       return this._queryError( input, 'Unknown operator ' + condition[ 1 ] )
+    }
+
+    // could use Array.isArray instead if supported
+    valueIsArray = Object.prototype.toString.call( condition[ 2 ] ) === '[object Array]'
+    if( condition[ 1 ] === 'in' && !valueIsArray ) {
+      return this._queryError( input, '\'in\' operator requires a JSON array')
     }
   }
 
