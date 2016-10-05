@@ -80,7 +80,7 @@ describe( 'the provider allows for the searching of table', () => {
     spanishBooks.subscribe( subscription )
   })
 
-/*  it( 'inserts a new spanish book and the search gets notified', ( done ) => {
+  it( 'inserts a new spanish book and the search gets notified', ( done ) => {
     ds.record.getRecord( 'ohy' ).set({
       title: 'Cien años de soledad',
       author: 'Gabriel García Márquez',
@@ -93,8 +93,11 @@ describe( 'the provider allows for the searching of table', () => {
       spanishBooks.unsubscribe( subscription )
       done()
     }
-    spanishBooks = ds.record.getList( 'search?' + spanishBooksQuery )
-    spanishBooks.subscribe( subscription )
+    setTimeout(function(){
+      spanishBooks = ds.record.getList( 'search?' + spanishBooksQuery )
+      spanishBooks.subscribe( subscription )
+    }, 300 );
+
   })
 
   it( 'issues a search for all books published between 1700 and 1950', ( done ) => {
@@ -119,6 +122,6 @@ describe( 'the provider allows for the searching of table', () => {
   it( 'cleans up', ( done ) => {
     ds.record.getRecord( 'ohy' ).delete()
     testHelper.cleanUp( provider, ds, done )
-  })*/
+  })
 
 })

@@ -44,13 +44,17 @@ var Search = function( provider, query, listName, rethinkdbConnection, deepstrea
  * @returns {void}
  */
 Search.prototype.destroy = function() {
-  this._provider.log( 'Removing search ' + this._list.name )
 
-  this._list.delete()
-  this._list = null
+  if( this._list ) {
+    this._provider.log( 'Removing search ' + this._list.name )
+    this._list.delete()
+    this._list = null
+  }
 
-  this._changeFeedCursor.close()
-  this._changeFeedCursor = null
+  if( this._changeFeedCursor ) {
+    this._changeFeedCursor.close()
+    this._changeFeedCursor = null
+  }
 }
 
 /**
@@ -72,7 +76,7 @@ Search.prototype._onChange = function( error, cursor ) {
       this._onError( 'Error while receiving change notification: ' + error )
     }
   } else {
-    this._changeFeedCursor = cursor
+    this._changeFeedCursor = cursor;
     cursor.each( this._readChange.bind( this ) )
   }
 }
