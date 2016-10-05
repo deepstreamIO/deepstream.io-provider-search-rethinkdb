@@ -5,6 +5,7 @@
   "main": "src/provider.js",
   "scripts": {
     "test": "mocha",
+    "watch": "mocha -w",
     "coverage": "istanbul cover node_modules/mocha/bin/_mocha",
     "lint": "eslint \"src/**/*.js\" \"test/**/*.js\"",
     "ci": "npm run coverage && npm run lint"
