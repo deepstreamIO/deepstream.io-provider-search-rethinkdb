@@ -8,7 +8,7 @@ function getFilter( queryJson ) {
   return query.toString()
 }
 
-describe.only( 'the provider creates the correct filter for each query', () => {
+describe( 'the provider creates the correct filter for each query', () => {
 
   it( 'creates the right filter for a query with one condition', () => {
     var filterString = getFilter({
