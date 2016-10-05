@@ -8,7 +8,7 @@ function getFilter( queryJson ) {
   return query.toString()
 }
 
-describe( 'the provider creates the correct filter for each query', () => {
+describe.only( 'the provider creates the correct filter for each query', () => {
 
   it( 'creates the right filter for a query with one condition', () => {
     var filterString = getFilter({
@@ -16,6 +16,22 @@ describe( 'the provider creates the correct filter for each query', () => {
       query: [[ 'title', 'eq', 'Don Quixote' ] ]
     })
     expect( filterString ).to.equal( 'r.table("someTable").filter(r.row("title").eq("Don Quixote"))' )
+  })
+
+  it( 'creates a filter for a query for nested fields', () => {
+    var filterString = getFilter({
+      table: 'someTable',
+      query: [[ 'features.frontdoor', 'eq', 'Don Quixote' ] ]
+    })
+    expect( filterString ).to.equal( 'r.table("someTable").filter(r.row("features")("frontdoor").eq("Don Quixote"))' )
+  })
+
+  it( 'creates a filter for a query with deeply nested fields', () => {
+    var filterString = getFilter({
+      table: 'someTable',
+      query: [[ 'a.c[2].e', 'eq', 'Don Quixote' ] ]
+    })
+    expect( filterString ).to.equal( 'r.table("someTable").filter(r.row("a")("c")("2")("e").eq("Don Quixote"))' )
   })
 
   it( 'creates the right filter for a query with multiple conditions', () => {

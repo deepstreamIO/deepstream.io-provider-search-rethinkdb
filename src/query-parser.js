@@ -45,7 +45,7 @@ QueryParser.prototype.createQuery = function( parsedInput ) {
     condition = parsedInput.query[ i ]
 
     if( condition[ 1 ] !== 'in' ) {
-      predicate = rethinkdb.row( condition[ 0 ] )[ condition[ 1 ] ]( condition[ 2 ] )
+      predicate = this._getRow( condition[ 0 ] )[ condition[ 1 ] ]( condition[ 2 ] )
     } else {
       predicate = function( record ) {
         return rethinkdb.expr( condition[ 2 ] ).contains( record( condition[ 0 ] ) )
@@ -136,5 +136,16 @@ QueryParser.prototype._queryError = function( name, error ) {
   this._provider.log( 'QUERY ERROR | ' + error, 1 )
   return null
 }
+
+QueryParser.prototype._getRow = function( path ) {
+  var parts = path.split( /[\[\]\.]/g ).filter( val => { return val.trim().length > 0; })
+  var row = rethinkdb.row( parts[ 0 ] );
+
+  for( var i = 1; i < parts.length; i++ ) {
+    row = row( parts[ i ] );
+  }
+
+  return row;
+};
 
 module.exports = QueryParser
