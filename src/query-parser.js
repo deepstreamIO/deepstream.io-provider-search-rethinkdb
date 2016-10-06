@@ -137,6 +137,14 @@ QueryParser.prototype._queryError = function( name, error ) {
   return null
 }
 
+/**
+ * Creates a ReQL row statement out of a simple or nested path
+ *
+ * @param   {String} path the path to search for
+ *
+ * @private
+ * @returns {[ReQL.Row]} ReQL row object
+ */
 QueryParser.prototype._getRow = function( path ) {
   var parts = path.split( /[\[\]\.]/g ).filter( val => { return val.trim().length > 0; })
   var row = rethinkdb.row( parts[ 0 ] );

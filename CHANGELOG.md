@@ -1,4 +1,4 @@
-## [1.2] - 2016-10-06
+## [1.2.0] - 2016-10-06
 
 ### Enhancements
 - New config parameter primaryKey [#42](https://github.com/deepstreamIO/deepstream.io-provider-search-rethinkdb/issues/42)

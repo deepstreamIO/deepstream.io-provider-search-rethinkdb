@@ -1,6 +1,6 @@
 {
   "name": "deepstream.io-provider-search-rethinkdb",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Realtime searches using rethinkdb",
   "main": "src/provider.js",
   "scripts": {
@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/deepstreamIO/deepstream.io-provider-search-rethinkdb",
   "dependencies": {
-    "deepstream.io-client-js": "^1.1.0",
+    "deepstream.io-client-js": "^1.1.1",
     "rethinkdb": "^2.3.3"
   },
   "devDependencies": {
@@ -37,7 +37,6 @@
     "deepstream.io": "latest",
     "deepstream.io-storage-rethinkdb": "latest",
     "eslint": "^3.0.1",
-    "eslint-config-airbnb": "^3.1.0",
     "istanbul": "^0.4.3",
     "mocha": "^3.0.0",
     "sinon": "^1.17.4",
