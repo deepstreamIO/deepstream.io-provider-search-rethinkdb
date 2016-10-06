@@ -31,7 +31,8 @@ var queryString = JSON.stringify({
 	table: 'book',
     	query: [
     		[ 'title', 'match', '^Harry Potter.*' ],
-        	[ 'price', 'lt', 15.30 ]
+        [ 'price', 'lt', 15.30 ],
+        [ 'author.lastname', 'eq', 'Rowling' ] //nested paths work too
     	]
 });
 ds.record.getList( 'search?' + queryString );
@@ -75,6 +76,9 @@ var searchProvider = new SearchProvider({
       port: 28015,
       db: 'deepstream'
   },
+
+  //optional primary key, defaults to ds_id
+  primaryKey: 'itemId',
 
   // Instead of creating a new connection to RethinkDb, you can also
   // reuse an existing one by substituting the above with

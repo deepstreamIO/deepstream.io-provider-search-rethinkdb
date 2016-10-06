@@ -1,3 +1,11 @@
+## [1.2] - 2016-10-06
+
+### Enhancements
+- New config parameter primaryKey [#42](https://github.com/deepstreamIO/deepstream.io-provider-search-rethinkdb/issues/42)
+- Queries now support nested paths [#44](https://github.com/deepstreamIO/deepstream.io-provider-search-rethinkdb/issues/44)
+- Queries now support `ge` and `le` [#38](https://github.com/deepstreamIO/deepstream.io-provider-search-rethinkdb/issues/38) by [@Iiridayn](https://github.com/Iiridayn)
+- Queries now support `Date` [#37](https://github.com/deepstreamIO/deepstream.io-provider-search-rethinkdb/issues/37) by [@Iiridayn](https://github.com/Iiridayn)
+
 ## [1.1.2] - 2016-09-11
 
 ### Enhancement
