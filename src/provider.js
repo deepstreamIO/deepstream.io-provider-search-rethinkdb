@@ -17,6 +17,7 @@ var rethinkdb = require( 'rethinkdb' ),
  */
 var Provider = function( config ) {
   this.isReady = false;
+  this.primaryKey = config.primaryKey || 'ds_id';
   this._config = config;
   this._queryParser = new QueryParser( this );
   this._logLevel = config.logLevel !== undefined ? config.logLevel : 1;

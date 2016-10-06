@@ -1,5 +1,4 @@
 const r = require( 'rethinkdb' )
-const PRIMARY_KEY = 'ds_id'
 
 /**
  * This class represents a single realtime search query against RethinkDb.
@@ -30,7 +29,7 @@ var Search = function( provider, query, listName, rethinkdbConnection, deepstrea
   this._changeFeedCursor = null
   this._initialValues = Object.create( null ) // new Set() would be better
 
-  query( PRIMARY_KEY )
+  query( this._provider.primaryKey )
     .changes({ includeStates: true, includeInitial: true, squash: false })
     .run( rethinkdbConnection, this._onChange.bind( this ) )
 }
