@@ -45,7 +45,7 @@ var Search = function( provider, query, listName, rethinkdbConnection, deepstrea
 Search.prototype.destroy = function() {
 
   if( this._list ) {
-    this._provider.log( 'Removing search ' + this._list.name )
+    this._provider.log( 'Removing search ' + this._list.name, 2 )
     this._list.delete()
     this._list = null
   }
