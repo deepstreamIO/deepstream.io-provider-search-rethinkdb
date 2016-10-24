@@ -6,7 +6,7 @@ const Deepstream = require( 'deepstream.io' )
 const RethinkDBStorageConnector = require( 'deepstream.io-storage-rethinkdb' )
 var server = null
 
-describe( 'the provider allows for the searching of table', () => {
+describe( 'the provider', () => {
   var provider
   var ds
   var spanishBooks
@@ -37,7 +37,7 @@ describe( 'the provider allows for the searching of table', () => {
       isReady: true
     } )
     server.on('started', () => {
-      setTimeout( done, 200 )
+      done()
     })
     server.start()
   })
@@ -47,7 +47,7 @@ describe( 'the provider allows for the searching of table', () => {
     server.stop()
   })
 
-  it( 'starts the provider', ( done ) => {
+  it( 'starts', ( done ) => {
     testHelper.startProvider(( _provider ) => {
       provider = _provider
       done()
@@ -69,18 +69,18 @@ describe( 'the provider allows for the searching of table', () => {
     })
   })
 
-  it( 'issues a simple search for books in spanish and finds Don Quixote', ( done ) => {
+  it( 'issues a simple search for books in Spanish and finds Don Quixote', ( done ) => {
     var subscription = (arg) => {
       expect( arg ).to.deep.equal([ 'don' ])
       spanishBooks.unsubscribe( subscription )
       spanishBooks.discard()
-      setTimeout( done, 500 )
+      done()
     }
     spanishBooks = ds.record.getList( 'search?' + spanishBooksQuery )
     spanishBooks.subscribe( subscription )
   })
 
-  it( 'inserts a new spanish book and the search gets notified', ( done ) => {
+  it( 'inserts a new Spanish book and the search gets notified', ( done ) => {
     ds.record.getRecord( 'ohy' ).set({
       title: 'Cien años de soledad',
       author: 'Gabriel García Márquez',
@@ -88,16 +88,22 @@ describe( 'the provider allows for the searching of table', () => {
       released: 1967,
       copiesSold: 50000000
     })
+
+    var update = false;
     var subscription = (arg) => {
+      if( !update ) {
+        expect( arg ).to.deep.equal([ 'don' ])
+        update = true
+        return
+      }
+
       expect( arg ).to.deep.equal([ 'don', 'ohy' ])
       spanishBooks.unsubscribe( subscription )
+      spanishBooks.discard()
       done()
     }
-    setTimeout(function(){
-      spanishBooks = ds.record.getList( 'search?' + spanishBooksQuery )
-      spanishBooks.subscribe( subscription )
-    }, 300 );
-
+    spanishBooks = ds.record.getList( 'search?' + spanishBooksQuery )
+    spanishBooks.subscribe( subscription )
   })
 
   it( 'issues a search for all books published between 1700 and 1950', ( done ) => {
@@ -108,19 +114,56 @@ describe( 'the provider allows for the searching of table', () => {
         [ 'released', 'lt', 1950 ]
       ]
     })
+    var subscription = ( entries ) => {
+      expect( entries ).to.deep.equal([ 'tct', 'tlp' ])
+      olderBooks.unsubscribe( subscription )
+      olderBooks.discard()
+      done()
+    }
     var olderBooks = ds.record.getList( 'search?' + query )
-    olderBooks.subscribe(( entries ) => {
-      if( entries.length > 0 ) {
-        expect( entries ).to.deep.equal([ 'tct', 'tlp' ])
-        done()
-      } else {
-        done.fail('no entries found')
-      }
-    })
+    olderBooks.subscribe( subscription )
   })
+
+  // TODO: it correctly handles an order field without an index
+
+  it( 'issues a search for the most recent book', ( done ) => {
+    var query = JSON.stringify({
+      table: connectionParams.testTable,
+      query: [],
+      order: 'released',
+      desc: true,
+      limit: 1
+    })
+
+    var update = false;
+    var subscription = ( arg ) => {
+      if( !update ) {
+        expect( arg ).to.deep.equal([ 'hrp' ])
+        update = true
+
+        ds.record.getRecord( 'twl' ).set({
+          title: 'Twilight',
+          author: 'Stephanie Meyer',
+          language: 'English',
+          released: 2005,
+          copiesSold: 47000000
+        })
+
+        return
+      }
+
+      expect( arg ).to.deep.equal([ 'twl' ])
+      recentBook.unsubscribe( subscription )
+      recentBook.discard()
+      done()
+    }
+    var recentBook = ds.record.getList( 'search?' + query )
+    recentBook.subscribe( subscription )
+  });
 
   it( 'cleans up', ( done ) => {
     ds.record.getRecord( 'ohy' ).delete()
+    ds.record.getRecord( 'twl' ).delete()
     testHelper.cleanUp( provider, ds, done )
   })
 

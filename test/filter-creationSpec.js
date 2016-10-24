@@ -1,17 +1,17 @@
 const expect = require('chai').expect
 const QueryParser = require( '../src/query-parser' )
-const queryParser = new QueryParser({ log: () => {} })
+const queryParser = new QueryParser({ primaryKey: 'ds_id', log: () => {} })
 
 function getFilter( queryJson ) {
-  var searchString = 'search?' + JSON.stringify( queryJson)
+  var searchString = 'search?' + JSON.stringify( queryJson )
   var query = queryParser.createQuery( queryParser.parseInput( searchString ) )
   return query.toString()
 }
 
-describe( 'the provider creates the correct filter for each query', () => {
+describe( 'the query builder', () => {
 
   it( 'creates the right filter for a query with no conditions', () => {
-    expect( getFilter({ table: 'someTable', query: [] }) ).to.equal( 'r.table("someTable")' );
+    expect( getFilter({ table: 'someTable', query: [] }) ).to.equal( 'r.table("someTable")("ds_id")' );
   })
 
   it( 'creates the right filter for a query with one condition', () => {
@@ -19,7 +19,7 @@ describe( 'the provider creates the correct filter for each query', () => {
       table: 'someTable',
       query: [[ 'title', 'eq', 'Don Quixote' ] ]
     })
-    expect( filterString ).to.equal( 'r.table("someTable").filter(r.row("title").eq("Don Quixote"))' )
+    expect( filterString ).to.equal( 'r.table("someTable").filter(r.row("title").eq("Don Quixote"))("ds_id")' )
   })
 
 
@@ -28,7 +28,7 @@ describe( 'the provider creates the correct filter for each query', () => {
       table: 'someTable',
       query: [[ 'features.frontdoor', 'eq', 'Don Quixote' ] ]
     })
-    expect( filterString ).to.equal( 'r.table("someTable").filter(r.row("features")("frontdoor").eq("Don Quixote"))' )
+    expect( filterString ).to.equal( 'r.table("someTable").filter(r.row("features")("frontdoor").eq("Don Quixote"))("ds_id")' )
   })
 
   it( 'creates a filter for a query with deeply nested fields', () => {
@@ -36,7 +36,7 @@ describe( 'the provider creates the correct filter for each query', () => {
       table: 'someTable',
       query: [[ 'a.c[2].e', 'eq', 'Don Quixote' ] ]
     })
-    expect( filterString ).to.equal( 'r.table("someTable").filter(r.row("a")("c")("2")("e").eq("Don Quixote"))' )
+    expect( filterString ).to.equal( 'r.table("someTable").filter(r.row("a")("c")("2")("e").eq("Don Quixote"))("ds_id")' )
   })
   
   it( 'creates the right filter for a query with a question mark', () => {
@@ -44,7 +44,7 @@ describe( 'the provider creates the correct filter for each query', () => {
       table: 'someTable',
       query: [[ 'artist', 'eq', '? and the Mysterians' ] ]
     })
-    expect( filterString ).to.equal( 'r.table("someTable").filter(r.row("artist").eq("? and the Mysterians"))' )
+    expect( filterString ).to.equal( 'r.table("someTable").filter(r.row("artist").eq("? and the Mysterians"))("ds_id")' )
 
   })
 
@@ -59,7 +59,7 @@ describe( 'the provider creates the correct filter for each query', () => {
     })
 
     expect( filterString ).to.equal(
-      'r.table("someTable").filter(r.row("title").eq("Don Quixote")).filter(r.row("released").gt(1700)).filter(r.row("author").match(".*eg"))'
+      'r.table("someTable").filter(r.row("title").eq("Don Quixote")).filter(r.row("released").gt(1700)).filter(r.row("author").match(".*eg"))("ds_id")'
     )
   })
 
@@ -73,7 +73,7 @@ describe( 'the provider creates the correct filter for each query', () => {
     })
 
     expect( filterString ).to.equal(
-      'r.table("someTable").filter(r.row("released").ge(1700)).filter(r.row("released").le(1800))'
+      'r.table("someTable").filter(r.row("released").ge(1700)).filter(r.row("released").le(1800))("ds_id")'
     )
   })
 
@@ -82,7 +82,29 @@ describe( 'the provider creates the correct filter for each query', () => {
       table: 'someTable',
       query: [[ 'released', 'in', [1706, 1708, 1869] ]]
     })
-    expect( filterString ).to.match( /^r.table\("someTable"\)\.filter\(function\(var_(\d+)\) { return r\(\[1706, 1708, 1869\]\)\.contains\(var_\1\("released"\)\); }\)$/ )
+    expect( filterString ).to.match( /^r.table\("someTable"\)\.filter\(function\(var_(\d+)\) { return r\(\[1706, 1708, 1869\]\)\.contains\(var_\1\("released"\)\); }\)\("ds_id"\)$/ )
   })
 
+  /*
+  it( 'creates the right filter for a query with nested fields and in', () => {
+    var filterString = getFilter({
+      table: 'someTable',
+      query: [[ 'dates.released', 'in', [1706, 1708, 1869] ]]
+    })
+    expect( filterString ).to.match( /^r.table\("someTable"\)\.filter\(function\(var_(\d+)\) { return r\(\[1706, 1708, 1869\]\)\.contains\(var_\1\("dates"\)\("released"\)\); }\)\("ds_id"\)$/ )
+  })
+  */
+
+  it( 'creates the right filter for a query with order and limit', () => {
+    var filterString = getFilter({
+      table: 'books',
+      query: [
+        [ 'released', 'gt', 1700 ]
+      ],
+      order: 'released',
+      desc: true,
+      limit: 1
+    })
+    expect( filterString ).to.equal( 'r.table("books").orderBy({"index": r.desc("released")}).filter(r.row("released").gt(1700))("ds_id").limit(1)' )
+  })
 })

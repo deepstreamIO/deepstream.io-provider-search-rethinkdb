@@ -40,8 +40,9 @@ exports.connectToDeepstream = function( done ) {
 };
 
 exports.cleanUp = function( provider, deepstream, done ) {
-	provider.stop();
+	// FIXME: this is to wait for an unsubscription ACK - remove timeout when DS closes cleanly
 	setTimeout( () => {
+		provider.stop();
 		deepstream.close();
 		done();
 	}, 100 );

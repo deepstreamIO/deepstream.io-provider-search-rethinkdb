@@ -41,6 +41,10 @@ QueryParser.prototype.createQuery = function( parsedInput ) {
 
   query = rethinkdb.table( parsedInput.table )
 
+  if( parsedInput.order ) {
+    query = query.orderBy({ index: rethinkdb[ parsedInput.desc ? 'desc' : 'asc' ]( parsedInput.order ) })
+  }
+
   for( i = 0; i < parsedInput.query.length; i++ ) {
     condition = parsedInput.query[ i ]
 
@@ -53,6 +57,12 @@ QueryParser.prototype.createQuery = function( parsedInput ) {
     }
 
     query = query.filter( predicate )
+  }
+
+  query = query( this._provider.primaryKey )
+
+  if( parsedInput.limit ) {
+    query = query.limit( parsedInput.limit )
   }
 
   return query
@@ -101,6 +111,10 @@ QueryParser.prototype.parseInput = function( input ) {
     return this._queryError( input, 'Missing parameter "query"' )
   }
 
+  if( !parsedInput.order != !parsedInput.limit ) { // XOR
+    return this._queryError( input, 'Must specify both "order" and "limit" together' );
+  }
+
   for( i = 0; i < parsedInput.query.length; i++ ) {
     condition = parsedInput.query[ i ]
 
@@ -146,7 +160,7 @@ QueryParser.prototype._queryError = function( name, error ) {
  * @returns {[ReQL.Row]} ReQL row object
  */
 QueryParser.prototype._getRow = function( path ) {
-  var parts = path.split( /[\[\]\.]/g ).filter( val => { return val.trim().length > 0; })
+  var parts = path.split( /[\[\]\.]/g ).filter( val => val.trim().length > 0 )
   var row = rethinkdb.row( parts[ 0 ] );
 
   for( var i = 1; i < parts.length; i++ ) {

@@ -29,7 +29,7 @@ var Search = function( provider, query, listName, rethinkdbConnection, deepstrea
   this._changeFeedCursor = null
   this._initialValues = Object.create( null ) // new Set() would be better
 
-  query( this._provider.primaryKey )
+  query
     .changes({ includeStates: true, includeInitial: true, squash: false })
     .run( rethinkdbConnection, this._onChange.bind( this ) )
 }
@@ -152,6 +152,24 @@ Search.prototype._processInitialValues = function( change ) {
 }
 
 /**
+ * Replaces an entry in the list with a single action
+ *
+ * @param change an object with old_val and new_val set
+ *
+ * @private
+ * @returns {void}
+ */
+Search.prototype._replaceEntry = function( change ) {
+  var currentEntires = this._list.getEntries(),
+    entries,
+
+  entries = currentEntires.filter( value => value !== change.old_val )
+  entries.push( change.new_val )
+
+  this._list.setEntries( entries )
+}
+
+/**
  * Differentiates between additions and deletions
  *
  * @param   {Object} change   A map with an old_val and a new_val key
@@ -160,9 +178,9 @@ Search.prototype._processInitialValues = function( change ) {
  * @returns {void}
  */
 Search.prototype._processChange = function( change ) {
-  // Should never occur, just in case it sends an update for an existing document
   if( change.old_val !== null && change.new_val !== null ) {
-    return
+    this._provider.log( 'Replacing 1 entry to ' + this._list.name, 3 )
+    this._replaceEntry( change );
   }
 
   if( change.old_val === null ) {
