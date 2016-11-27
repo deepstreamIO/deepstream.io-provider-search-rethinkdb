@@ -7,34 +7,31 @@ const QueryParser = require( '../src/query-parser' )
 const log = sinon.spy()
 const queryParser = new QueryParser({ log: (log) })
 
-describe( 'queries are parsed correctly', () => {
+describe( 'the query parser', () => {
 
   it( 'parses queries with a single condition correctly', () => {
-    var parsedInput = queryParser.parseInput( 'search?{"table":"books","query":[["name","eq","Harry Potter"]]}' )
-
-    expect( parsedInput ).to.deep.equal({
+    var query = {
       table: 'books',
       query: [[ 'name', 'eq', 'Harry Potter' ]]
-    })
+    }
+    var parsedInput = queryParser.parseInput( 'search?' + JSON.stringify(query) )
 
+    expect( parsedInput ).to.deep.equal( query )
     expect( log ).to.have.not.been.called
   })
 
   it( 'parses queries with multiple conditions correctly', () => {
-    var parsedInput = queryParser.parseInput(
-      `search?{"table":"books",
-      "query":[["name","eq","Harry Potter"],["price","gt",12.3],["publisher","match",".*random.*"]]}`
-    )
-
-    expect( parsedInput ).to.deep.equal({
+    var query = {
       table: 'books',
       query: [
         [ 'name', 'eq', 'Harry Potter' ],
         [ 'price', 'gt', 12.3 ],
         [ 'publisher', 'match', '.*random.*' ]
       ]
-    })
+    }
+    var parsedInput = queryParser.parseInput( 'search?' + JSON.stringify(query) )
 
+    expect( parsedInput ).to.deep.equal( query )
     expect( log ).to.have.not.been.called
   })
 
@@ -60,6 +57,18 @@ describe( 'queries are parsed correctly', () => {
     var parsedInput = queryParser.parseInput( 'search?{"table":"books"}' )
     expect( parsedInput ).to.equal( null )
     expect( log ).to.have.been.calledWith( 'QUERY ERROR | Missing parameter "query"', 1 )
+  })
+
+  it( 'errors for order without limit', () => {
+    var parsedInput = queryParser.parseInput( 'search?{"table":"books","query":[],"order":"price"}' )
+    expect( parsedInput ).to.equal( null )
+    expect( log ).to.have.been.calledWith( 'QUERY ERROR | Must specify both "order" and "limit" together', 1 )
+  })
+
+  it( 'errors for limit without order', () => {
+    var parsedInput = queryParser.parseInput( 'search?{"table":"books","query":[],"limit":1}' )
+    expect( parsedInput ).to.equal( null )
+    expect( log ).to.have.been.calledWith( 'QUERY ERROR | Must specify both "order" and "limit" together', 1 )
   })
 
   it( 'errors for malformed query', () => {
