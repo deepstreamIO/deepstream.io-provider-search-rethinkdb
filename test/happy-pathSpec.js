@@ -29,7 +29,7 @@ describe( 'the provider', () => {
       defaultTable: connectionParams.testTable
     }))
     server.set( 'storageExclusion', /^search.*/ )
-    server.set( 'tcpPort', 7071)
+    server.set( 'port', 7071)
     server.set( 'showLogo', false)
     server.set( 'logger', {
       setLogLevel: function() {},
