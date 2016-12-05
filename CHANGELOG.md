@@ -1,3 +1,9 @@
+## [2.0.0] - 2016-12-5
+
+### Enhancements
+- Now using v2.0.0 of the deepstream client
+- Queries now support order and limit [#1](https://github.com/deepstreamIO/deepstream.io-provider-search-rethinkdb/issues/1) by [@Iiridayn](https://github.com/Iiridayn)
+
 ## [1.2.0] - 2016-10-06
 
 ### Enhancements
