@@ -4,7 +4,7 @@
 - Queries now support order and limit [#1](https://github.com/deepstreamIO/deepstream.io-provider-search-rethinkdb/issues/1) by [@Iiridayn](https://github.com/Iiridayn)
 
 ### Breaking change
-- Now using v2.0.0 of the deepstream client, this is not compatible with v1 of the client
+- Now using v2.0.0 of the deepstream client, this is not compatible with v1 of the server
 
 ## [1.2.0] - 2016-10-06
 
