@@ -1,5 +1,7 @@
 # deepstream.io-provider-search-rethinkdb
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/deepstreamIO/deepstream.io-provider-search-rethinkdb.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://travis-ci.org/deepstreamIO/deepstream.io-provider-search-rethinkdb.svg?branch=master)](https://travis-ci.org/deepstreamIO/deepstream.io-provider-search-rethinkdb)
 [![Coverage Status](https://coveralls.io/repos/github/deepstreamIO/deepstream.io-provider-search-rethinkdb/badge.svg?branch=master)](https://coveralls.io/github/deepstreamIO/deepstream.io-provider-search-rethinkdb?branch=master)
 [![npm](https://img.shields.io/npm/v/deepstream.io-provider-search-rethinkdb.svg)](https://www.npmjs.com/package/deepstream.io-provider-search-rethinkdb)
