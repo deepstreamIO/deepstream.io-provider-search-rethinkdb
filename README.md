@@ -1,3 +1,5 @@
+# UNMAINTAINED
+
 # deepstream.io-provider-search-rethinkdb
 
 [![Greenkeeper badge](https://badges.greenkeeper.io/deepstreamIO/deepstream.io-provider-search-rethinkdb.svg)](https://greenkeeper.io/)
