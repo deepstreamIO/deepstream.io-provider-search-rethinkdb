@@ -90,6 +90,10 @@ Search.prototype._onChange = function( error, cursor ) {
  * @returns {void}
  */
 Search.prototype._readChange = function( cursorError, change ) {
+  // Search.prototype.destroy has already been called, cursor already closed
+  if( !this._list )
+    return false;
+
   if( cursorError ) {
     this._onError( 'cursor error on change: ' + cursorError.toString() )
   }
