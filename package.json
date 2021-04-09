@@ -32,14 +32,14 @@
     "rethinkdb": "^2.3.3"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
-    "coveralls": "^2.11.9",
+    "chai": "^4.2.0",
+    "coveralls": "^3.0.3",
     "deepstream.io": "latest",
     "deepstream.io-storage-rethinkdb": "latest",
-    "eslint": "^3.0.1",
+    "eslint": "^5.16.0",
     "istanbul": "^0.4.3",
-    "mocha": "^3.0.0",
-    "sinon": "^2.2.0",
-    "sinon-chai": "^2.8.0"
+    "mocha": "^6.0.2",
+    "sinon": "^7.3.1",
+    "sinon-chai": "^3.3.0"
   }
 }
